@@ -1,0 +1,6 @@
+3	13:49:41.096	2024.03.05 08:19:00  Tester stopped
+0	13:49:41.111	2024.03.05 08:19:00  Expert Duto_v3.2_NOTIFY EURUSD,M1: removed
+0	13:49:41.111	2024.03.05 08:19:00  EURUSD,M1: 500 tick events (500 bars, 3878 bar states) processed in 46:33:12.672 (total time 46:33:12.907)
+0	13:49:43.370	2024.03.05 08:19:00  Custom indicator duto_chart_indicators_v0.6 EURUSD,M1: removed
+0	13:49:43.375	2024.03.05 08:19:00  Custom indicator macd_color_indicator_plot1_v0.9 EURUSD,M1: removed
+0	13:49:43.385	2024.03.05 08:19:00  Custom indicator SchaffTrendCycle EURUSD,M1: removed

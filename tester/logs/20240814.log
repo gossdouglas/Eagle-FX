@@ -1,0 +1,94 @@
+0	15:15:22.260	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,H1: 7
+0	15:15:22.260	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,H1: plot 1 indicator init()
+0	15:15:25.603	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M15: 7
+0	15:15:25.603	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M15: plot 1 indicator init()
+0	15:15:25.712	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M5: 7
+0	15:15:25.712	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M5: plot 1 indicator init()
+0	15:15:25.837	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M1: 7
+0	15:15:25.837	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M1: plot 1 indicator init()
+0	15:15:34.272	2024.03.05 00:40:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCREASING DARK GREEN TO BRIGHT GREEN POSITIVE. BuyDkGrBrGrStrategyActive: true
+0	15:15:36.256	2024.03.05 00:50:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING BRIGHT GREEN TO DARK GREEN POSITIVE. SellBrGrDkGrStrategyActive: true
+0	15:15:38.006	2024.03.05 00:59:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:15:38.006	2024.03.05 00:59:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.08562, CombinedHistory[1][32]: 1.085697207133516
+2	15:15:38.006	2024.03.05 00:59:00  Duto_v3.2_NOTIFY EURUSD,M1: open #1 sell 1.00 EURUSD at 1.08562 sl: 1.08587 tp: 1.08557 ok
+0	15:15:38.006	2024.03.05 00:59:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 1 submitted: Command 1 Volume 1.0 Open 1.08562 Stop 1.08587 Take 1.08557 Expiration 1970.01.01 00:00:00
+2	15:15:38.006	2024.03.05 01:00:00  Tester: take profit #1 at 1.08557 (1.08546 / 1.08548)
+0	15:16:29.097	2024.03.05 01:25:00  Custom indicator duto_chart_indicators_v0.6 EURUSD,M1: removed
+0	15:16:29.112	2024.03.05 01:25:00  Custom indicator macd_color_indicator_plot1_v0.9 EURUSD,M1: removed
+0	15:16:29.112	2024.03.05 01:25:00  Custom indicator SchaffTrendCycle EURUSD,M1: removed
+3	15:16:32.361	2024.03.05 01:25:00  Tester: stop button pressed
+0	15:16:32.423	EURUSD,M1: 86 tick events (86 bars, 3878 bar states) processed in 0:01:25.250 (total time 0:01:25.360)
+0	15:16:32.642	macd_color_indicator_plot1_v0.10 EURUSD,M1: 7
+0	15:16:32.642	macd_color_indicator_plot1_v0.10 EURUSD,M1: plot 1 indicator init()
+0	15:16:34.274	Expert Duto_v3.2_NOTIFY EURUSD,M1: removed
+0	15:16:34.305	Expert Duto\Duto_v3.2_NOTIFY EURUSD,M1: loaded successfully
+0	15:16:34.618	TestGenerator: spread set to 2
+2	15:16:34.852	2024.03.05 00:00:00  Duto_v3.2_NOTIFY inputs: MAFastPeriod=10; MAFastShift=0; MAFastMethod=0; MAFastAppliedPrice=0; MASlowPeriod=25; MASlowShift=0; MASlowMethod=0; MASlowAppliedPrice=0; PSARStopStep=0.04; PSARStopMax=0.4; RiskDefaultSize=2; DefaultLotSize=1; RiskBase=2; MaxRiskPerTrade=2; MinLotSize=0.01; MaxLotSize=100; UseTradingHours=0; TradingHourStart=7; TradingHourEnd=19; StopLossMode=0; DefaultStopLoss=25; MinStopLoss=0; MaxStopLoss=5000; TakeProfitMode=0; DefaultTakeProfit=5; MinTakeProfit=0; MaxTakeProfit=5000; UseTrailingStop=0; MagicNumber=0; Slippage=5; MaxSpread=100; 
+3	15:16:36.789	2024.03.05 00:00:00  cannot open file 'C:\Users\gossd\AppData\Roaming\MetaQuotes\Terminal\7E6C4A6F67D435CAE80890D8C1401332\MQL4\indicators\_Custom\Duto\duto_chart_indicators_v0.5.ex4' [2]
+3	15:16:36.789	2024.03.05 00:00:00  cannot open file 'C:\Users\gossd\AppData\Roaming\MetaQuotes\Terminal\7E6C4A6F67D435CAE80890D8C1401332\MQL4\indicators\_Custom\Duto\duto_chart_indicators_v0.5.ex4' [2]
+0	15:16:36.820	2024.03.05 00:00:00  Custom indicator _Custom\Duto\duto_chart_indicators_v0.6 EURUSD,M1: loaded successfully
+0	15:16:36.836	2024.03.05 00:00:00  Custom indicator _Custom\Duto\macd_color_indicator_plot1_v0.9 EURUSD,M1: loaded successfully
+0	15:16:36.867	2024.03.05 00:00:00  Custom indicator _Custom\Duto\SchaffTrendCycle EURUSD,M1: loaded successfully
+0	15:16:36.945	2024.03.05 00:00:00  macd_color_indicator_plot1_v0.9 EURUSD,M1: 7
+0	15:16:36.945	2024.03.05 00:00:00  macd_color_indicator_plot1_v0.9 EURUSD,M1: plot 1 indicator init()
+0	15:16:40.132	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,H1: 7
+0	15:16:40.132	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,H1: plot 1 indicator init()
+0	15:16:40.272	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M15: 7
+0	15:16:40.272	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M15: plot 1 indicator init()
+0	15:16:40.444	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M5: 7
+0	15:16:40.444	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M5: plot 1 indicator init()
+0	15:16:40.585	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M1: 7
+0	15:16:40.585	2024.03.05 00:01:00  macd_color_indicator_plot1_v0.10 EURUSD,M1: plot 1 indicator init()
+0	15:16:48.660	2024.03.05 00:34:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:16:48.660	2024.03.05 00:34:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.08569, CombinedHistory[1][32]: 1.085703879788226
+2	15:16:48.660	2024.03.05 00:34:00  Duto_v3.2_NOTIFY EURUSD,M1: open #1 sell 1.00 EURUSD at 1.08569 sl: 1.08594 tp: 1.08564 ok
+0	15:16:48.660	2024.03.05 00:34:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 1 submitted: Command 1 Volume 1.0 Open 1.08569 Stop 1.08594 Take 1.08564 Expiration 1970.01.01 00:00:00
+2	15:16:48.879	2024.03.05 00:36:00  Tester: take profit #1 at 1.08564 (1.08560 / 1.08562)
+0	15:16:49.754	2024.03.05 00:40:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCREASING DARK GREEN TO BRIGHT GREEN POSITIVE. BuyDkGrBrGrStrategyActive: true
+0	15:16:51.550	2024.03.05 00:49:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:16:51.550	2024.03.05 00:49:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.08572, CombinedHistory[1][32]: 1.085754350365355
+2	15:16:51.550	2024.03.05 00:49:00  Duto_v3.2_NOTIFY EURUSD,M1: open #2 sell 1.00 EURUSD at 1.08572 sl: 1.08597 tp: 1.08567 ok
+0	15:16:51.550	2024.03.05 00:49:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 2 submitted: Command 1 Volume 1.0 Open 1.08572 Stop 1.08597 Take 1.08567 Expiration 1970.01.01 00:00:00
+0	15:16:51.737	2024.03.05 00:50:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING BRIGHT GREEN TO DARK GREEN POSITIVE. SellBrGrDkGrStrategyActive: true
+2	15:16:51.737	2024.03.05 00:51:00  Tester: take profit #2 at 1.08567 (1.08569 / 1.08571)
+0	15:17:40.652	2024.03.05 02:10:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK GREEN TO BRIGHT RED. SellDkGrBrRdStrategyActive: true
+0	15:17:51.773	2024.03.05 03:05:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:17:54.194	2024.03.05 03:17:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:17:54.194	2024.03.05 03:17:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.08554, CombinedHistory[1][32]: 1.085579034184769
+2	15:17:54.194	2024.03.05 03:17:00  Duto_v3.2_NOTIFY EURUSD,M1: open #3 sell 1.00 EURUSD at 1.08554 sl: 1.08579 tp: 1.08549 ok
+0	15:17:54.194	2024.03.05 03:17:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 3 submitted: Command 1 Volume 1.0 Open 1.08554 Stop 1.08579 Take 1.08549 Expiration 1970.01.01 00:00:00
+0	15:17:55.757	2024.03.05 03:26:00  Tester: stop loss #3 at 1.08579 (1.08579 / 1.08581)
+0	15:17:57.787	2024.03.05 03:35:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:17:57.787	2024.03.05 03:35:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.08568, CombinedHistory[1][32]: 1.085662040827277
+2	15:17:57.787	2024.03.05 03:35:00  Duto_v3.2_NOTIFY EURUSD,M1: open #4 sell 1.00 EURUSD at 1.08568 sl: 1.08593 tp: 1.08563 ok
+0	15:17:57.787	2024.03.05 03:35:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 4 submitted: Command 1 Volume 1.0 Open 1.08568 Stop 1.08593 Take 1.08563 Expiration 1970.01.01 00:00:00
+2	15:17:59.240	2024.03.05 03:43:00  Tester: take profit #4 at 1.08563 (1.08556 / 1.08558)
+0	15:18:00.959	2024.03.05 03:50:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK RED TO BRIGHT RED. SellDkRdBrRdStrategyActive: true
+0	15:18:14.783	2024.03.05 04:55:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:18:15.220	2024.03.05 04:57:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 BUY, M1 BUY
+2	15:18:15.220	2024.03.05 04:57:00  Duto_v3.2_NOTIFY EURUSD,M1: open #5 buy 1.00 EURUSD at 1.08525 sl: 1.08500 tp: 1.08530 ok
+0	15:18:15.220	2024.03.05 04:57:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 5 submitted: Command 0 Volume 1.0 Open 1.08525 Stop 1.085 Take 1.0853 Expiration 1970.01.01 00:00:00
+0	15:18:15.908	2024.03.05 05:00:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK RED TO BRIGHT RED. SellDkRdBrRdStrategyActive: true
+2	15:18:16.361	2024.03.05 05:03:00  Tester: take profit #5 at 1.08530 (1.08529 / 1.08531)
+0	15:18:18.173	2024.03.05 05:10:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:18:19.313	2024.03.05 05:15:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK RED TO BRIGHT RED. SellDkRdBrRdStrategyActive: true
+0	15:19:04.846	2024.03.05 06:25:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:19:05.986	2024.03.05 06:30:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK RED TO BRIGHT RED. SellDkRdBrRdStrategyActive: true
+0	15:19:07.143	2024.03.05 06:35:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:19:10.736	2024.03.05 06:50:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK RED TO BRIGHT RED. SellDkRdBrRdStrategyActive: true
+0	15:19:14.438	2024.03.05 07:05:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:19:15.641	2024.03.05 07:10:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS DECREASING DARK RED TO BRIGHT RED. SellDkRdBrRdStrategyActive: true
+0	15:19:16.766	2024.03.05 07:15:00  Duto_v3.2_NOTIFY EURUSD,M1: M5 PLOTS INCEASING BRIGHT RED TO DARK RED. BuyBrRdDkRdStrategyActive: true
+0	15:19:19.046	2024.03.05 07:25:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:19:19.046	2024.03.05 07:25:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.08509, CombinedHistory[1][32]: 1.085090318321529
+2	15:19:19.046	2024.03.05 07:25:00  Duto_v3.2_NOTIFY EURUSD,M1: open #6 sell 1.00 EURUSD at 1.08509 sl: 1.08534 tp: 1.08504 ok
+0	15:19:19.046	2024.03.05 07:25:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 6 submitted: Command 1 Volume 1.0 Open 1.08509 Stop 1.08534 Take 1.08504 Expiration 1970.01.01 00:00:00
+0	15:19:21.421	2024.03.05 07:36:00  Tester: stop loss #6 at 1.08534 (1.08531 / 1.08533)
+0	15:19:25.577	2024.03.05 07:52:00  Duto_v3.2_NOTIFY EURUSD,M1: EURUSD M5 SELL, M1 SELL
+0	15:19:25.577	2024.03.05 07:52:00  Duto_v3.2_NOTIFY EURUSD,M1: Bid: 1.0853, CombinedHistory[1][32]: 1.08529551185737
+2	15:19:25.577	2024.03.05 07:52:00  Duto_v3.2_NOTIFY EURUSD,M1: open #7 sell 1.00 EURUSD at 1.08530 sl: 1.08555 tp: 1.08525 ok
+0	15:19:25.577	2024.03.05 07:52:00  Duto_v3.2_NOTIFY EURUSD,M1: TRADE - OPEN SUCCESS - Order 7 submitted: Command 1 Volume 1.0 Open 1.0853 Stop 1.08555 Take 1.08525 Expiration 1970.01.01 00:00:00
+2	15:19:29.436	2024.03.05 08:08:00  Tester: take profit #7 at 1.08525 (1.08529 / 1.08531)
+0	15:19:33.873	2024.03.05 08:19:00  Custom indicator duto_chart_indicators_v0.6 EURUSD,M1: removed
+0	15:19:33.888	2024.03.05 08:19:00  Custom indicator macd_color_indicator_plot1_v0.9 EURUSD,M1: removed
+0	15:19:33.888	2024.03.05 08:19:00  Custom indicator SchaffTrendCycle EURUSD,M1: removed
