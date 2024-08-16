@@ -1,0 +1,18 @@
+0	14:51:26.386	Custom indicator _Custom\Duto\duto_chart_indicators_v0.5 EURUSD,M5: loaded successfully
+0	14:51:26.417	Custom indicator _Custom\Duto\duto_chart_indicators_v0.5 EURUSD,M5: loaded successfully
+0	14:51:26.433	Custom indicator _Custom\Duto\macd_color_indicator_plot1_v0.9 EURUSD,M5: loaded successfully
+0	14:51:26.464	Custom indicator _Custom\Duto\SchaffTrendCycle EURUSD,M5: loaded successfully
+0	14:51:26.558	duto_chart_indicators_v0.5 EURUSD,M5: initialized
+0	14:51:26.589	duto_chart_indicators_v0.5 EURUSD,M5: initialized
+0	14:51:26.652	macd_color_indicator_plot1_v0.9 EURUSD,M5: 6
+0	14:51:26.652	macd_color_indicator_plot1_v0.9 EURUSD,M5: plot 1 indicator init()
+0	14:51:26.652	macd_color_indicator_plot1_v0.9 EURUSD,M5: initialized
+0	14:51:26.683	SchaffTrendCycle EURUSD,M5: initialized
+0	15:02:31.385	duto_chart_indicators_v0.5 EURUSD,M5: uninit reason 9
+0	15:02:31.385	duto_chart_indicators_v0.5 EURUSD,M5: uninit reason 9
+0	15:02:31.385	macd_color_indicator_plot1_v0.9 EURUSD,M5: uninit reason 9
+0	15:02:31.385	SchaffTrendCycle EURUSD,M5: uninit reason 9
+0	15:02:31.561	Custom indicator duto_chart_indicators_v0.5 EURUSD,M5: removed
+0	15:02:31.572	Custom indicator duto_chart_indicators_v0.5 EURUSD,M5: removed
+0	15:02:31.572	Custom indicator macd_color_indicator_plot1_v0.9 EURUSD,M5: removed
+0	15:02:31.587	Custom indicator SchaffTrendCycle EURUSD,M5: removed
