@@ -2951,7 +2951,7 @@ double BarColorCount (int Idx, string PosNeg){
       while(CombinedHistory[count + 1][Idx] > 0);
    }
 
-   Print("Bar sum absolute value: " + MathAbs(barSum));
+   //Print("Bar sum absolute value: " + MathAbs(barSum));
    Print("Returned BarColorCount: " + count);
    Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
 
