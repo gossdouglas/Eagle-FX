@@ -206,6 +206,11 @@ input string OrderNote = "";           // Comment For The Orders Opened By This 
 input int Slippage = 5;                // Slippage in points
 input int MaxSpread = 100;             // Maximum Allowed Spread To Trade In Points
 
+//DUTO EA SPECIFIC VARIABLES
+input string Comment_5 = "=========="; // Duto Specific Settings
+input double BarColorCountThreshold = 5.0;  // BarColorCount Threshold
+
+
 //-GLOBAL VARIABLES-//
 // The viables included in this section are global, hence they can be used in any part of the code
 // It is useful to add a comment to remember what is the variable for
@@ -2165,8 +2170,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
-      && BarColorCount(Idx, "NEGATIVE") <= 0.000035
-      //&& BarColorCount(Idx, "NEGATIVE") >= 0.000002
+      //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
+      && BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
       )
    {  
       /* Print("[Idx-10]: " + (26));
@@ -2191,8 +2196,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
-      && BarColorCount(Idx, "POSITIVE") <= 0.000035
-      //&& BarColorCount(Idx, "POSITIVE") >= 0.000002
+      //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
+      && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
       )
    {  
       /* Print("[Idx-10]: " + (26));
