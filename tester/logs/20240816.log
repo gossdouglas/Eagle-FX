@@ -1,6 +1,11 @@
-3	13:49:41.096	2024.03.05 08:19:00  Tester stopped
-0	13:49:41.111	2024.03.05 08:19:00  Expert Duto_v3.2_NOTIFY EURUSD,M1: removed
-0	13:49:41.111	2024.03.05 08:19:00  EURUSD,M1: 500 tick events (500 bars, 3878 bar states) processed in 46:33:12.672 (total time 46:33:12.907)
-0	13:49:43.370	2024.03.05 08:19:00  Custom indicator duto_chart_indicators_v0.6 EURUSD,M1: removed
-0	13:49:43.375	2024.03.05 08:19:00  Custom indicator macd_color_indicator_plot1_v0.9 EURUSD,M1: removed
-0	13:49:43.385	2024.03.05 08:19:00  Custom indicator SchaffTrendCycle EURUSD,M1: removed
+0	14:26:14.134	2024.08.15 02:02:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Bar sum absolute value: 111.26867
+0	14:26:14.134	2024.08.15 02:02:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Returned BarColorCount: 57
+0	14:26:14.134	2024.08.15 02:02:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Bar sum/BarColorCount: 1.952082
+0	14:26:58.516	2024.08.15 04:43:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Bar sum absolute value: 37.01954
+0	14:26:58.516	2024.08.15 04:43:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Returned BarColorCount: 23
+0	14:26:58.516	2024.08.15 04:43:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Bar sum/BarColorCount: 1.609545
+0	14:38:42.286	2024.08.15 06:32:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Bar sum absolute value: 3.55049
+0	14:38:42.286	2024.08.15 06:32:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Returned BarColorCount: 11
+0	14:38:42.286	2024.08.15 06:32:00  Duto_v3.3_SAFETY-2-STRAT-SNIPER NAS100,M1: Bar sum/BarColorCount: 0.322772
+3	14:40:59.435	2024.08.15 11:14:00  Tester: stop button pressed
+0	14:40:59.701	NAS100,M1: 612 tick events (612 bars, 3717 bar states) processed in 0:15:07.187 (total time 0:15:07.203)
