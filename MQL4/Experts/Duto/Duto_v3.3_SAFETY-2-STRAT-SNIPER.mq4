@@ -1395,7 +1395,10 @@ bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strat
 void DutoWind_SelectedStrategy()
 {
    DutoWind_2Strategy();
-   Comment("Current Strategy : " + CurrentStrategy);
+   Comment(
+      "Current Strategy : " + CurrentStrategy + "\n" +
+      "Current Bar Color Count Threshold : " + BarColorCountThreshold + "\n"
+   );
 }
 
 void DutoWind_2Strategy()
@@ -2207,8 +2210,6 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       result = "ENTER A SAFETY TRADE SELL";
    }
 
-   
-
    return result;
 }
 
@@ -2925,13 +2926,12 @@ string AskThePlots(int Idx, int CndleStart, int CmbndHstryCandleLength, string O
    return result;
 }
 
-//int BarColorCount (int Idx, string PosNeg){
-double BarColorCount (int Idx, string PosNeg){
+double BarColorCount (int Idx, string Command){
 
    int count = 1;
    float barSum = 0.0;
 
-   if (PosNeg == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
+   if (Command == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
    {
       do 
      { 
@@ -2939,9 +2939,22 @@ double BarColorCount (int Idx, string PosNeg){
       count++; // without this operator an infinite loop will appear! 
      } 
       while(CombinedHistory[count + 1][Idx] < 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      if(count <= 20)
+      {
+         return MathAbs(barSum)/count;
+      }
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      } 
    }
    else
-   if (PosNeg == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
+   if (Command == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
    {
       do 
      { 
@@ -2949,14 +2962,27 @@ double BarColorCount (int Idx, string PosNeg){
       count++; // without this operator an infinite loop will appear! 
      } 
       while(CombinedHistory[count + 1][Idx] > 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      if(count <= 20)
+      {
+         return MathAbs(barSum)/count;
+      } 
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      }     
    }
 
-   //Print("Bar sum absolute value: " + MathAbs(barSum));
+   /* Print("Bar sum absolute value: " + MathAbs(barSum));
    Print("Returned BarColorCount: " + count);
-   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6)); */
 
-   //return count;
-   return MathAbs(barSum)/count;
+   return 99.99;
+   //return MathAbs(barSum)/count;
 }
 
 //DutoWind
