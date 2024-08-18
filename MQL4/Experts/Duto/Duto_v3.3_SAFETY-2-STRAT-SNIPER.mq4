@@ -208,7 +208,7 @@ input int MaxSpread = 100;             // Maximum Allowed Spread To Trade In Poi
 
 //DUTO EA SPECIFIC VARIABLES
 input string Comment_5 = "=========="; // Duto Specific Settings
-input double BarColorCountThreshold = 5.0;  // BarColorCount Threshold
+input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 
 
 //-GLOBAL VARIABLES-//
