@@ -206,10 +206,6 @@ input string OrderNote = "";           // Comment For The Orders Opened By This 
 input int Slippage = 5;                // Slippage in points
 input int MaxSpread = 100;             // Maximum Allowed Spread To Trade In Points
 
-//DUTO EA SPECIFIC VARIABLES
-input string Comment_5 = "=========="; // Duto Specific Settings
-input double BarColorCountThreshold = 5.0;  // BarColorCount Threshold
-
 
 //-GLOBAL VARIABLES-//
 // The viables included in this section are global, hence they can be used in any part of the code
@@ -230,8 +226,37 @@ int TotalOpenBuy = 0;          // Number of total open buy orders
 int TotalOpenSell = 0;         // Number of total open sell orders
 int StopLossBy = SL_BY_POINTS; // How the stop loss is passed for the lot size calculation
 
-// ENUM_SIGNAL_ENTRY SignalEntry=SIGNAL_ENTRY_NEUTRAL;      //Entry signal variable
-// ENUM_SIGNAL_EXIT SignalExit=SIGNAL_EXIT_NEUTRAL;         //Exit signal variable
+//DUTO EA SPECIFIC VARIABLES
+input string Comment_5 = "=========="; // Duto Specific Settings
+input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
+input double BarCountThreshold = 20;  // Bar Count Threshold
+
+//only allows an evaluation to be made if LogIndicatorData has been executed at least once
+bool StartupFlag;
+//string that will be written to the chart window
+string DutoComments;
+
+//history arrays
+//chart indicator history arrays
+double FastMAHistoryBuffer[], SlowMAHistoryBuffer[], FiveFiftyMAHistoryBuffer[], DeltaCollapsedPosHistoryBuffer[], DeltaCollapsedNegHistoryBuffer[];
+//MACD indicator history arrays
+double MacdHistoryBuffer[],  MacdPlot2HistoryBuffer[], MacdPlot3HistoryBuffer[], MacdPlot4HistoryBuffer[];
+//sniper indicator history array
+int SniperHistoryBuffer[];
+//a two dimensional array that stored indicator data from all time frames
+//each time frame has 10 measurements
+double CombinedHistory[1][52];
+
+//LogIndicatorData() variables
+string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
+string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
+string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
+string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
+string duto_sniper = "_Custom\\Duto\\SchaffTrendCycle";
+string strWriteLine, strWriteLine2 = "";
+int fileHandleIndicatorData;
+int periodArray[] = {60, 15, 5};
+
 
 //-NATIVE MT4 EXPERT ADVISOR RUNNING FUNCTIONS-//
 
@@ -249,6 +274,9 @@ int OnInit()
    }
    // Function to initialize the values of the global variables
    InitializeVariables();
+   /* // Function to initialize the logging of history
+   InitializeLogging(); */
+   
 
    // If everything is ok the function returns successfully and the control is passed to a timer or the OnTike function
    return (INIT_SUCCEEDED);
@@ -259,6 +287,8 @@ void OnDeinit(const int reason)
 {
    // You can include in this function something you want done when the EA closes
    // For example clean the chart form graphical objects, write a report to a file or some kind of alert
+
+   //FileClose(fileHandleIndicatorData); 
 }
 
 // The OnTick function is triggered every time MT4 receives a price change for the symbol in the chart
@@ -359,10 +389,41 @@ void InitializeVariables()
 
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
    SignalExit = SIGNAL_EXIT_NEUTRAL;
+
+   //DutoComments = "";
 }
 
-//this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
-bool StartupFlag;
+/* // Initialize logging history data
+void InitializeLogging()
+{
+   //if the file exists, then delete it so only the most recent data is included
+   if (FileIsExist("duto_indicator_data.csv")) {
+
+      FileDelete("duto_indicator_data.csv");
+   } 
+
+   FileCopy("duto_indicator_data_blank.csv", 0, "duto_indicator_data.csv", 0);
+
+   //open the file
+   fileHandleIndicatorData = FileOpen("duto_indicator_data.csv", FILE_BIN | FILE_READ | FILE_WRITE | FILE_CSV);
+
+   if (fileHandleIndicatorData < 1)
+   {
+      Print("can't open file error-", GetLastError());
+      //return (0);
+   }
+} */
+
+// Initialize 
+void InitializeComments()
+{
+   DutoComments = "";
+   DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
+   DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
+   DutoComments = DutoComments + "Bar Count Limit : " + BarCountThreshold + "\n";
+
+   Comment(DutoComments);  
+}
 
 // Evaluate if there is an entry signal, called from the OnTickEvent
 void EvaluateEntry()
@@ -380,6 +441,10 @@ void EvaluateEntry()
    if (IsNewCandle)
    {
       // Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
+
+      // Function to initialize the 
+      InitializeComments();
+
       // log data and build the CombinedHistory array
       LogIndicatorData();
       //DutoWind_Strategy();
@@ -943,7 +1008,7 @@ bool ScanOrders()
 //===================================================
 //BEGIN DUTO STRATEGY, ENTRY AND EXIT
 
-//chart indicator history arrays
+/* //chart indicator history arrays
 double FastMAHistoryBuffer[], SlowMAHistoryBuffer[], FiveFiftyMAHistoryBuffer[], DeltaCollapsedPosHistoryBuffer[], DeltaCollapsedNegHistoryBuffer[];
 //MACD indicator history arrays
 double MacdHistoryBuffer[],  MacdPlot2HistoryBuffer[], MacdPlot3HistoryBuffer[], MacdPlot4HistoryBuffer[];
@@ -952,11 +1017,11 @@ int SniperHistoryBuffer[];
 
 //history array. a two dimensional array that stored indicator data from all time frames
 //each time frame has 10 measurements
-double CombinedHistory[1][52];
+double CombinedHistory[1][52]; */
 
 void LogIndicatorData()
 {
-   //indicator testing
+   /* //indicator variables
    string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
    string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
    string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
@@ -964,7 +1029,7 @@ void LogIndicatorData()
    string duto_sniper = "_Custom\\Duto\\SchaffTrendCycle";
    string strWriteLine, strWriteLine2 = "";
    int fileHandleIndicatorData;
-   int periodArray[] = {60, 15, 5};
+   int periodArray[] = {60, 15, 5}; */
    
    //if the file exists, then delete it so only the most recent data is included
    if (FileIsExist("duto_indicator_data.csv")) {
@@ -1395,7 +1460,16 @@ bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strat
 void DutoWind_SelectedStrategy()
 {
    DutoWind_2Strategy();
-   Comment("Current Strategy : " + CurrentStrategy);
+   /* DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
+   DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
+   DutoComments = DutoComments + "Bar Count Limit : " + BarCountThreshold + "\n";
+
+   Comment(DutoComments); */
+
+   /* Comment(
+      "Current Strategy : " + CurrentStrategy + "\n" +
+      "Current Bar Color Count Threshold : " + BarColorCountThreshold + "\n"
+   ); */
 }
 
 void DutoWind_2Strategy()
@@ -1536,7 +1610,7 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    //ACTIVE
    //BUY EXIT
    if (
-      AskThePlots2StrategyExit(36, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
+      AskThePlots2StrategyExit(37, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
       && BuyStrategyActive == true 
       && BuyTradeActive == true
 
@@ -1556,7 +1630,7 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    //ACTIVE
    //SELL EXIT
    if (
-      AskThePlots2StrategyExit(36, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
+      AskThePlots2StrategyExit(37, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
       && SellStrategyActive == true 
       && SellTradeActive == true
 
@@ -2206,8 +2280,6 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
 
       result = "ENTER A SAFETY TRADE SELL";
    }
-
-   
 
    return result;
 }
@@ -2925,13 +2997,13 @@ string AskThePlots(int Idx, int CndleStart, int CmbndHstryCandleLength, string O
    return result;
 }
 
-//int BarColorCount (int Idx, string PosNeg){
-double BarColorCount (int Idx, string PosNeg){
+double BarColorCount (int Idx, string Command){
+
 
    int count = 1;
    float barSum = 0.0;
 
-   if (PosNeg == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
+   if (Command == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
    {
       do 
      { 
@@ -2939,9 +3011,23 @@ double BarColorCount (int Idx, string PosNeg){
       count++; // without this operator an infinite loop will appear! 
      } 
       while(CombinedHistory[count + 1][Idx] < 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      //if(count <= 20)
+      if(count <= BarCountThreshold)
+      {
+         return MathAbs(barSum)/count;
+      }
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      } 
    }
    else
-   if (PosNeg == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
+   if (Command == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
    {
       do 
      { 
@@ -2949,14 +3035,28 @@ double BarColorCount (int Idx, string PosNeg){
       count++; // without this operator an infinite loop will appear! 
      } 
       while(CombinedHistory[count + 1][Idx] > 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      //if(count <= 20)
+      if(count <= BarCountThreshold)
+      {
+         return MathAbs(barSum)/count;
+      } 
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      }     
    }
 
-   //Print("Bar sum absolute value: " + MathAbs(barSum));
+   /* Print("Bar sum absolute value: " + MathAbs(barSum));
    Print("Returned BarColorCount: " + count);
-   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6)); */
 
-   //return count;
-   return MathAbs(barSum)/count;
+   return 99.99;
+   //return MathAbs(barSum)/count;
 }
 
 //DutoWind

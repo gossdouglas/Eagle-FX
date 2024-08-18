@@ -2,4 +2,11 @@
 /History
 /Logs
 /Profiles
+/Tester
+duto_indicator_data.csv
 origin.txt
+tester/files/duto_indicator_data.csv
+/tester
+*.csv
+/tester/history
+*.csv
