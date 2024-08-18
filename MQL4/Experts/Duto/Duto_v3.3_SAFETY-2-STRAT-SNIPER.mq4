@@ -1423,27 +1423,6 @@ void GetIndicatorHistory(int indicatorIndex, int numCandles)
 
 //DutoWind
 
-/* OVERALL SELL STRATEGY
-
-If the M5 plot 3 changes from bright green to dark green or dark green to bright red
-then enter an overall sell strategy that is signalled by the Boolean variable SellStrategyActive being set to true. 
-This overall strategy ends when the M5 plot 3 changes from dark green to bright green or from bright red to dark red.
-
--bright green to dark green indicates a decreasing positive trend.
-
--dark green to bright red indicates a switch to a negative trend from a decreasing positive trend.
-
-TRADES WHEN THE  SELL STRATEGY IS ACTIVE
-
-Sells will be entered and exited based upon conditions of the MACD  M1 chart.  A sell may be entered on the  
-first available dark green candle or the first available bright red candle.  
-
-Dark green entries will be exited when a bright green candle or dark red candle appears. 
-
-Bright red entries will be exited when a dark red candle appears. 
-
-Sell trades will be entered and exited again and again until conditions on the M5 plot 2 set the boolean variable SellStrategyActive to false.  */
-
 double EntryData[2][11];
 string CurrentStrategy;
 bool SellStrategyActive, BuyStrategyActive, NeutralStrategyActive;
@@ -1554,8 +1533,7 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
       return SignalEntry; // If you are using trading hours and it's not a trading hour don't give an entry signal
    } 
 
-   //BUY ENTRY
-   //ACTIVE
+   //BUY ENTRY //ACTIVE 
    if (
          (AskThePlots2StrategyEntry(36, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
          && BuyStrategyActive == true 
@@ -1576,8 +1554,8 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
       SignalEntry = SIGNAL_ENTRY_BUY;
    }
 
-   //SELL ENTRY
-   //ACTIVE
+   //SELL ENTRY //ACTIVE
+  
    if (
          (AskThePlots2StrategyEntry(36, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
          && SellStrategyActive == true 
@@ -2243,6 +2221,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
 
+      && CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
+
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
       && BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
@@ -2268,6 +2248,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
 
       && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
+
+      && CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
