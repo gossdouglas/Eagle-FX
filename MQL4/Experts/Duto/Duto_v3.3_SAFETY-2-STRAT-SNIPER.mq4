@@ -1361,7 +1361,7 @@ void LogIndicatorData()
          + "\r\n";
 
          //write a line of strings to a file
-         //FileWriteString(fileHandleIndicatorData, strWriteLine, StringLen(strWriteLine));
+         FileWriteString(fileHandleIndicatorData, strWriteLine, StringLen(strWriteLine));
 
          /* //check combined history data with output
          Print("check combined history data with output");
@@ -1618,6 +1618,7 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    if (
       //AskThePlots2StrategyExit(37, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
       AskThePlots2StrategyExit(UpperTimeFrame + 10 + 7, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
+      //AskThePlots2StrategyExit(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
       && BuyStrategyActive == true 
       && BuyTradeActive == true
 
@@ -1639,6 +1640,7 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    if (
       //AskThePlots2StrategyExit(37, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
       AskThePlots2StrategyExit(UpperTimeFrame + 10 + 7, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
+      //AskThePlots2StrategyExit(UpperTimeFrame + 10 + 6, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
       && SellStrategyActive == true 
       && SellTradeActive == true
 
@@ -2236,7 +2238,7 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
 string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
-   //Print("AskThePlots2StrategyEntry Idx: " + Idx);
+   Print("AskThePlots2StrategyEntry Idx: " + Idx);
 
    //ENTRY LOGIC
 
