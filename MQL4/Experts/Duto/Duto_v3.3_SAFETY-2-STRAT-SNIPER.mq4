@@ -1336,7 +1336,7 @@ void LogIndicatorData()
          + "\r\n";
 
          //write a line of strings to a file
-         FileWriteString(fileHandleIndicatorData, strWriteLine, StringLen(strWriteLine));
+         //FileWriteString(fileHandleIndicatorData, strWriteLine, StringLen(strWriteLine));
 
          /* //check combined history data with output
          Print("check combined history data with output");
