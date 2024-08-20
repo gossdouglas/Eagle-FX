@@ -226,6 +226,8 @@ int TotalOpenBuy = 0;          // Number of total open buy orders
 int TotalOpenSell = 0;         // Number of total open sell orders
 int StopLossBy = SL_BY_POINTS; // How the stop loss is passed for the lot size calculation
 
+//int SpreadCurr = 0;
+
 //DUTO EA SPECIFIC VARIABLES
 
 //selected time frame
@@ -245,7 +247,9 @@ input double BarCountThreshold = 20;  // Bar Count Threshold
 //only allows an evaluation to be made if LogIndicatorData has been executed at least once
 bool StartupFlag;
 //string that will be written to the chart window
-string DutoComments;
+string SettingsComments;
+//string that will be written to the chart window
+string RunningComments;
 
 //history arrays
 //chart indicator history arrays
@@ -287,7 +291,9 @@ int OnInit()
    InitializeVariables();
    /* // Function to initialize the logging of history
    InitializeLogging(); */
-   
+
+   // Function to initialize the 
+   InitializeComments();
 
    // If everything is ok the function returns successfully and the control is passed to a timer or the OnTike function
    return (INIT_SUCCEEDED);
@@ -426,8 +432,12 @@ void InitializeLogging()
 // Initialize 
 void InitializeComments()
 {
-   DutoComments = "";
+   SettingsComments = "";
    string str = "";
+
+   SettingsComments = SettingsComments + "Spread OK?: " + IsSpreadOK + 
+   //" Current Spread: " + SpreadCurr + 
+   " Max Spread: " + MaxSpread + "\n";
 
    switch (UpperTimeFrame)
    {
@@ -442,18 +452,22 @@ void InitializeComments()
       break; 
    }
 
-   DutoComments = DutoComments + "Upper Timeframe : " + str + "\n";
-   DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
-   DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
-   DutoComments = DutoComments + "Bar Count Limit : " + BarCountThreshold + "\n";
+   SettingsComments = SettingsComments + "Upper Timeframe : " + str + "\n";
+   SettingsComments = SettingsComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
+   SettingsComments = SettingsComments + "Bar Count Limit : " + BarCountThreshold + "\n";
 
-   Comment(DutoComments);  
+   Comment(SettingsComments);  
 }
 
 // Evaluate if there is an entry signal, called from the OnTickEvent
 void EvaluateEntry()
 {
+   Print("EvaluateEntry");
+   Print("!IsSpreadOK: " + !IsSpreadOK);
+   Print("IsTradedThisBar: " + IsTradedThisBar);
+
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+
    if (!IsSpreadOK)
       return; // If the spread is too high don't give an entry signal
 
@@ -463,17 +477,19 @@ void EvaluateEntry()
    // whether a new candle has been started is based on the chart that is shown
    if (IsNewCandle)
    {
-      // Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
+       Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
 
-      // Function to initialize the 
-      InitializeComments();
-
+      RunningComments = "";
       // log data and build the CombinedHistory array
       LogIndicatorData();
 
       //DutoWind_Strategy();
       DutoWind_SelectedStrategy();
       StartupFlag = true;
+
+      //Comment(RunningComments);
+      Comment(SettingsComments);  
+      Print("RunningComments: " + RunningComments);
 
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
    }
@@ -725,6 +741,7 @@ void ExecuteTrailingStop()
 void CheckSpread()
 {
    // Get the current spread in points, the (int) transforms the double coming from MarketInfo into an integer to avoid a warning when compiling
+   //SpreadCurr = (int)MarketInfo(Symbol(), MODE_SPREAD);
    int SpreadCurr = (int)MarketInfo(Symbol(), MODE_SPREAD);
    if (SpreadCurr <= MaxSpread)
    {
@@ -759,6 +776,9 @@ void CheckOperationHours()
 datetime NewBarTime = TimeCurrent();
 void CheckNewBar()
 {
+   /* Print("NewBarTime:" + NewBarTime);
+   Print("Time[0]:" + Time[0]); */
+
    // NewBarTime contains the open time of the last bar known
    // if that open time is the same as the current bar then we are still in the current bar, otherwise we are in a new bar
    if (NewBarTime == Time[0])
@@ -768,6 +788,8 @@ void CheckNewBar()
       NewBarTime = Time[0];
       IsNewCandle = true;
    }
+
+   Print("IsNewCandle:" + IsNewCandle);
 }
 ///*
 
@@ -1464,6 +1486,8 @@ bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strat
 void DutoWind_SelectedStrategy()
 {
    DutoWind_2Strategy();
+   RunningComments = RunningComments + "Current Strategy : " + CurrentStrategy + "\n";
+
    /* DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
    DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
    DutoComments = DutoComments + "Bar Count Limit : " + BarCountThreshold + "\n";
