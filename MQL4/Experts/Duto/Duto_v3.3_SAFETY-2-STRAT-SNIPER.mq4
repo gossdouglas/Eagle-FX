@@ -2238,7 +2238,7 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
 string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
-   Print("AskThePlots2StrategyEntry Idx: " + Idx);
+   //Print("AskThePlots2StrategyEntry Idx: " + Idx);
 
    //ENTRY LOGIC
 
