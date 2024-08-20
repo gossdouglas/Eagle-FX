@@ -7,5 +7,5 @@ duto_indicator_data.csv
 origin.txt
 tester/files/duto_indicator_data.csv
 /tester/caches
-/tester/logs
 /tester/history
+/tester/logs
