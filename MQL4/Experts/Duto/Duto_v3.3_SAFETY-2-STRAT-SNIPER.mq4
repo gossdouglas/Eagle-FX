@@ -249,7 +249,9 @@ bool StartupFlag;
 //string that will be written to the chart window
 string SettingsComments;
 //string that will be written to the chart window
-string RunningComments;
+string CandleComments;
+//string that will be written to the chart window
+string PipComments;
 
 //history arrays
 //chart indicator history arrays
@@ -293,7 +295,7 @@ int OnInit()
    InitializeLogging(); */
 
    // Function to initialize the 
-   InitializeComments();
+   InitializeEASettingsComments();
 
    // If everything is ok the function returns successfully and the control is passed to a timer or the OnTike function
    return (INIT_SUCCEEDED);
@@ -313,6 +315,12 @@ void OnTick()
 {
    // Re-initialize the values of the global variables at every run
    InitializeVariables();
+
+   InitializeEAPipComments();
+
+   /* // Re-initialize the EA running comments at every tick
+   InitializeEACandleComments() */
+
    // ScanOrders scans all the open orders and collect statistics, if an error occurs it skips to the next price change
    if (!ScanOrders())
       return;
@@ -430,14 +438,12 @@ void InitializeLogging()
 } */
 
 // Initialize 
-void InitializeComments()
+void InitializeEASettingsComments()
 {
-   SettingsComments = "";
-   string str = "";
+   SettingsComments = "==================\n";
+   SettingsComments = SettingsComments + "Duto Settings\n";
 
-   SettingsComments = SettingsComments + "Spread OK?: " + IsSpreadOK + 
-   //" Current Spread: " + SpreadCurr + 
-   " Max Spread: " + MaxSpread + "\n";
+   string str = "";
 
    switch (UpperTimeFrame)
    {
@@ -459,50 +465,66 @@ void InitializeComments()
    Comment(SettingsComments);  
 }
 
+void InitializeEACandleComments()
+{
+   CandleComments = "==================\n";
+   CandleComments = CandleComments + "Duto Candle Data\n";
+}
+
+void InitializeEAPipComments()
+{
+   PipComments = "==================\n";
+   PipComments = PipComments + "Duto Pip Data\n";
+}
+
 // Evaluate if there is an entry signal, called from the OnTickEvent
 void EvaluateEntry()
 {
-   Print("EvaluateEntry");
-   Print("!IsSpreadOK: " + !IsSpreadOK);
-   Print("IsTradedThisBar: " + IsTradedThisBar);
-
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
-   if (!IsSpreadOK)
+   /* if (!IsSpreadOK)
       return; // If the spread is too high don't give an entry signal
 
    if (IsTradedThisBar)
       return; // If you don't want to execute multiple trades in the same bar
 
+   if (TotalOpenOrders > 0)
+      return; // If there are already open orders and you don't want to open more */
+
    // whether a new candle has been started is based on the chart that is shown
    if (IsNewCandle)
    {
-       Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
+      //Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
 
-      RunningComments = "";
-      // log data and build the CombinedHistory array
+      // Re-initialize the EA candle comments at every new candle
+      InitializeEACandleComments();
+
+      //log data and build the CombinedHistory array
       LogIndicatorData();
 
-      //DutoWind_Strategy();
       DutoWind_SelectedStrategy();
       StartupFlag = true;
-
-      //Comment(RunningComments);
-      Comment(SettingsComments);  
-      Print("RunningComments: " + RunningComments);
 
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
    }
 
-   if (TotalOpenOrders > 0)
-      return; // If there are already open orders and you don't want to open more
-
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
-   if (StartupFlag ==  true)
-   {
+   if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar && (!TotalOpenOrders > 0))
+   { 
+      /* if (!IsSpreadOK)
+      return; // If the spread is too high don't give an entry signal
+
+   if (IsTradedThisBar)
+      return; // If you don't want to execute multiple trades in the same bar
+
+   if (TotalOpenOrders > 0)
+      return; // If there are already open orders and you don't want to open more */
+
       // evaluate for a signal entry
       SignalEntry = ReturnSignalEntryToEvaluateEntry();
    }
+
+   Comment(SettingsComments + CandleComments + PipComments); 
 }
 
 // Execute entry if there is an entry signal
@@ -741,16 +763,22 @@ void ExecuteTrailingStop()
 void CheckSpread()
 {
    // Get the current spread in points, the (int) transforms the double coming from MarketInfo into an integer to avoid a warning when compiling
-   //SpreadCurr = (int)MarketInfo(Symbol(), MODE_SPREAD);
    int SpreadCurr = (int)MarketInfo(Symbol(), MODE_SPREAD);
    if (SpreadCurr <= MaxSpread)
    {
+
       IsSpreadOK = true;
    }
    else
    {
       IsSpreadOK = false;
    }
+
+   PipComments = PipComments + "IsSpreadOK: " + IsSpreadOK + " SpreadCurr: " + SpreadCurr + 
+   " MaxSpread: " + MaxSpread + "\n";
+
+   //Print("SpreadCurr: " + SpreadCurr + "MaxSpread: " + MaxSpread);
+   //Print("IsSpreadOK: " + IsSpreadOK);
 }
 
 // Check and return if it is operation hours or not
@@ -788,8 +816,6 @@ void CheckNewBar()
       NewBarTime = Time[0];
       IsNewCandle = true;
    }
-
-   Print("IsNewCandle:" + IsNewCandle);
 }
 ///*
 
@@ -1486,7 +1512,7 @@ bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strat
 void DutoWind_SelectedStrategy()
 {
    DutoWind_2Strategy();
-   RunningComments = RunningComments + "Current Strategy : " + CurrentStrategy + "\n";
+   CandleComments = CandleComments + "Current Strategy : " + CurrentStrategy + "\n";
 
    /* DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
    DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
