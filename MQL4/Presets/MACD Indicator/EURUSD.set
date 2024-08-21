@@ -1,0 +1,4 @@
+FastEMA=12
+SlowEMA=26
+SignalSMA=9
+PlotPositionStart=-0.00002

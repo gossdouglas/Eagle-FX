@@ -206,10 +206,6 @@ input string OrderNote = "";           // Comment For The Orders Opened By This 
 input int Slippage = 5;                // Slippage in points
 input int MaxSpread = 100;             // Maximum Allowed Spread To Trade In Points
 
-//DUTO EA SPECIFIC VARIABLES
-input string Comment_5 = "=========="; // Duto Specific Settings
-input double BarColorCountThreshold = 5.0;  // BarColorCount Threshold
-
 
 //-GLOBAL VARIABLES-//
 // The viables included in this section are global, hence they can be used in any part of the code
@@ -230,8 +226,48 @@ int TotalOpenBuy = 0;          // Number of total open buy orders
 int TotalOpenSell = 0;         // Number of total open sell orders
 int StopLossBy = SL_BY_POINTS; // How the stop loss is passed for the lot size calculation
 
-// ENUM_SIGNAL_ENTRY SignalEntry=SIGNAL_ENTRY_NEUTRAL;      //Entry signal variable
-// ENUM_SIGNAL_EXIT SignalExit=SIGNAL_EXIT_NEUTRAL;         //Exit signal variable
+//DUTO EA SPECIFIC VARIABLES
+
+//selected time frame
+enum ENUM_UPPER_TIME_FRAME
+{
+   TIME_FRAME_H1 = 0, // H1
+   TIME_FRAME_M15 = 10, // M15
+   TIME_FRAME_M5 = 20, // M5
+};
+
+//upper left information section
+input string Comment_5 = "=========="; // Duto Specific Settings
+input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_M5; // Upper time frame
+input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
+input double BarCountThreshold = 20;  // Bar Count Threshold
+
+//only allows an evaluation to be made if LogIndicatorData has been executed at least once
+bool StartupFlag;
+//string that will be written to the chart window
+string DutoComments;
+
+//history arrays
+//chart indicator history arrays
+double FastMAHistoryBuffer[], SlowMAHistoryBuffer[], FiveFiftyMAHistoryBuffer[], DeltaCollapsedPosHistoryBuffer[], DeltaCollapsedNegHistoryBuffer[];
+//MACD indicator history arrays
+double MacdHistoryBuffer[],  MacdPlot2HistoryBuffer[], MacdPlot3HistoryBuffer[], MacdPlot4HistoryBuffer[];
+//sniper indicator history array
+int SniperHistoryBuffer[];
+//a two dimensional array that stored indicator data from all time frames
+//each time frame has 10 measurements
+double CombinedHistory[1][52];
+
+//LogIndicatorData() variables
+string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
+string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
+string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
+string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
+string duto_sniper = "_Custom\\Duto\\SchaffTrendCycle";
+string strWriteLine, strWriteLine2 = "";
+int fileHandleIndicatorData;
+int periodArray[] = {60, 15, 5};
+
 
 //-NATIVE MT4 EXPERT ADVISOR RUNNING FUNCTIONS-//
 
@@ -249,6 +285,9 @@ int OnInit()
    }
    // Function to initialize the values of the global variables
    InitializeVariables();
+   /* // Function to initialize the logging of history
+   InitializeLogging(); */
+   
 
    // If everything is ok the function returns successfully and the control is passed to a timer or the OnTike function
    return (INIT_SUCCEEDED);
@@ -259,6 +298,8 @@ void OnDeinit(const int reason)
 {
    // You can include in this function something you want done when the EA closes
    // For example clean the chart form graphical objects, write a report to a file or some kind of alert
+
+   //FileClose(fileHandleIndicatorData); 
 }
 
 // The OnTick function is triggered every time MT4 receives a price change for the symbol in the chart
@@ -361,8 +402,53 @@ void InitializeVariables()
    SignalExit = SIGNAL_EXIT_NEUTRAL;
 }
 
-//this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
-bool StartupFlag;
+/* // Initialize logging history data
+void InitializeLogging()
+{
+   //if the file exists, then delete it so only the most recent data is included
+   if (FileIsExist("duto_indicator_data.csv")) {
+
+      FileDelete("duto_indicator_data.csv");
+   } 
+
+   FileCopy("duto_indicator_data_blank.csv", 0, "duto_indicator_data.csv", 0);
+
+   //open the file
+   fileHandleIndicatorData = FileOpen("duto_indicator_data.csv", FILE_BIN | FILE_READ | FILE_WRITE | FILE_CSV);
+
+   if (fileHandleIndicatorData < 1)
+   {
+      Print("can't open file error-", GetLastError());
+      //return (0);
+   }
+} */
+
+// Initialize 
+void InitializeComments()
+{
+   DutoComments = "";
+   string str = "";
+
+   switch (UpperTimeFrame)
+   {
+     case 0: 
+      str = "1 HOUR"; 
+      break; 
+      case 10: 
+      str = "15 MINUTE"; 
+      break; 
+      case 20: 
+      str = "5 MINUTE"; 
+      break; 
+   }
+
+   DutoComments = DutoComments + "Upper Timeframe : " + str + "\n";
+   DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
+   DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
+   DutoComments = DutoComments + "Bar Count Limit : " + BarCountThreshold + "\n";
+
+   Comment(DutoComments);  
+}
 
 // Evaluate if there is an entry signal, called from the OnTickEvent
 void EvaluateEntry()
@@ -370,9 +456,7 @@ void EvaluateEntry()
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
    if (!IsSpreadOK)
       return; // If the spread is too high don't give an entry signal
-   /* if (UseTradingHours && !IsOperatingHours)
-      return; // If you are using trading hours and it's not a trading hour don't give an entry signal */
-   // if(!IsNewCandle) return;      //If you want to provide a signal only if it's a new candle opening
+
    if (IsTradedThisBar)
       return; // If you don't want to execute multiple trades in the same bar
 
@@ -380,11 +464,17 @@ void EvaluateEntry()
    if (IsNewCandle)
    {
       // Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
+
+      // Function to initialize the 
+      InitializeComments();
+
       // log data and build the CombinedHistory array
       LogIndicatorData();
+
       //DutoWind_Strategy();
       DutoWind_SelectedStrategy();
       StartupFlag = true;
+
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
    }
 
@@ -943,7 +1033,7 @@ bool ScanOrders()
 //===================================================
 //BEGIN DUTO STRATEGY, ENTRY AND EXIT
 
-//chart indicator history arrays
+/* //chart indicator history arrays
 double FastMAHistoryBuffer[], SlowMAHistoryBuffer[], FiveFiftyMAHistoryBuffer[], DeltaCollapsedPosHistoryBuffer[], DeltaCollapsedNegHistoryBuffer[];
 //MACD indicator history arrays
 double MacdHistoryBuffer[],  MacdPlot2HistoryBuffer[], MacdPlot3HistoryBuffer[], MacdPlot4HistoryBuffer[];
@@ -952,11 +1042,11 @@ int SniperHistoryBuffer[];
 
 //history array. a two dimensional array that stored indicator data from all time frames
 //each time frame has 10 measurements
-double CombinedHistory[1][52];
+double CombinedHistory[1][52]; */
 
 void LogIndicatorData()
 {
-   //indicator testing
+   /* //indicator variables
    string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
    string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
    string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
@@ -964,7 +1054,7 @@ void LogIndicatorData()
    string duto_sniper = "_Custom\\Duto\\SchaffTrendCycle";
    string strWriteLine, strWriteLine2 = "";
    int fileHandleIndicatorData;
-   int periodArray[] = {60, 15, 5};
+   int periodArray[] = {60, 15, 5}; */
    
    //if the file exists, then delete it so only the most recent data is included
    if (FileIsExist("duto_indicator_data.csv")) {
@@ -1358,27 +1448,6 @@ void GetIndicatorHistory(int indicatorIndex, int numCandles)
 
 //DutoWind
 
-/* OVERALL SELL STRATEGY
-
-If the M5 plot 3 changes from bright green to dark green or dark green to bright red
-then enter an overall sell strategy that is signalled by the Boolean variable SellStrategyActive being set to true. 
-This overall strategy ends when the M5 plot 3 changes from dark green to bright green or from bright red to dark red.
-
--bright green to dark green indicates a decreasing positive trend.
-
--dark green to bright red indicates a switch to a negative trend from a decreasing positive trend.
-
-TRADES WHEN THE  SELL STRATEGY IS ACTIVE
-
-Sells will be entered and exited based upon conditions of the MACD  M1 chart.  A sell may be entered on the  
-first available dark green candle or the first available bright red candle.  
-
-Dark green entries will be exited when a bright green candle or dark red candle appears. 
-
-Bright red entries will be exited when a dark red candle appears. 
-
-Sell trades will be entered and exited again and again until conditions on the M5 plot 2 set the boolean variable SellStrategyActive to false.  */
-
 double EntryData[2][11];
 string CurrentStrategy;
 bool SellStrategyActive, BuyStrategyActive, NeutralStrategyActive;
@@ -1395,7 +1464,16 @@ bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strat
 void DutoWind_SelectedStrategy()
 {
    DutoWind_2Strategy();
-   Comment("Current Strategy : " + CurrentStrategy);
+   /* DutoComments = DutoComments + "Current Strategy : " + CurrentStrategy + "\n";
+   DutoComments = DutoComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
+   DutoComments = DutoComments + "Bar Count Limit : " + BarCountThreshold + "\n";
+
+   Comment(DutoComments); */
+
+   /* Comment(
+      "Current Strategy : " + CurrentStrategy + "\n" +
+      "Current Bar Color Count Threshold : " + BarColorCountThreshold + "\n"
+   ); */
 }
 
 void DutoWind_2Strategy()
@@ -1407,7 +1485,8 @@ void DutoWind_2Strategy()
 
    //BUY 2 STRATEGY SAFETY TRADE
    if (
-      (AskThePlots2Strategy(26, 1, 1, "ST_BUY_2_STRATEGY") == "SAFETY TRADE BUY 2 STRATEGY") 
+      //(AskThePlots2Strategy(26, 1, 1, "ST_BUY_2_STRATEGY") == "SAFETY TRADE BUY 2 STRATEGY") 
+      (AskThePlots2Strategy((UpperTimeFrame + 6), 1, 1, "ST_BUY_2_STRATEGY") == "SAFETY TRADE BUY 2 STRATEGY") 
       )
    {
       SellStrategyActive = false;
@@ -1428,7 +1507,7 @@ void DutoWind_2Strategy()
 
    //SELL 2 STRATEGY SAFETY TRADE
    if (
-      (AskThePlots2Strategy(26, 1, 1, "ST_SELL_2_STRATEGY") == "SAFETY TRADE SELL 2 STRATEGY") 
+      (AskThePlots2Strategy((UpperTimeFrame + 6), 1, 1, "ST_SELL_2_STRATEGY") == "SAFETY TRADE SELL 2 STRATEGY") 
       )
    {
       SellStrategyActive = true;
@@ -1449,7 +1528,7 @@ void DutoWind_2Strategy()
 
    //NEUTRAL 2 STRATEGY SAFETY TRADE
    if (
-      (AskThePlots2Strategy(26, 1, 1, "ST_NEUTRAL_2_STRATEGY") == "SAFETY TRADE NEUTRAL 2 STRATEGY") 
+      (AskThePlots2Strategy((UpperTimeFrame + 6), 1, 1, "ST_NEUTRAL_2_STRATEGY") == "SAFETY TRADE NEUTRAL 2 STRATEGY") 
       )
    {
       SellStrategyActive = false;
@@ -1480,10 +1559,10 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
       return SignalEntry; // If you are using trading hours and it's not a trading hour don't give an entry signal
    } 
 
-   //BUY ENTRY
-   //ACTIVE
+   //BUY ENTRY //ACTIVE 
    if (
-         (AskThePlots2StrategyEntry(36, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
+         //(AskThePlots2StrategyEntry(36, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
+         (AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
          && BuyStrategyActive == true 
          && BuyTradeActive == false
 
@@ -1502,10 +1581,11 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
       SignalEntry = SIGNAL_ENTRY_BUY;
    }
 
-   //SELL ENTRY
-   //ACTIVE
+   //SELL ENTRY //ACTIVE
+  
    if (
-         (AskThePlots2StrategyEntry(36, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
+         //(AskThePlots2StrategyEntry(36, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
+         (AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 6, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
          && SellStrategyActive == true 
          && SellTradeActive == false
 
@@ -1536,7 +1616,9 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    //ACTIVE
    //BUY EXIT
    if (
-      AskThePlots2StrategyExit(36, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
+      //AskThePlots2StrategyExit(37, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
+      AskThePlots2StrategyExit(UpperTimeFrame + 10 + 7, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
+      //AskThePlots2StrategyExit(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
       && BuyStrategyActive == true 
       && BuyTradeActive == true
 
@@ -1556,7 +1638,9 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    //ACTIVE
    //SELL EXIT
    if (
-      AskThePlots2StrategyExit(36, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
+      //AskThePlots2StrategyExit(37, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
+      AskThePlots2StrategyExit(UpperTimeFrame + 10 + 7, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
+      //AskThePlots2StrategyExit(UpperTimeFrame + 10 + 6, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
       && SellStrategyActive == true 
       && SellTradeActive == true
 
@@ -2045,6 +2129,8 @@ ENUM_SIGNAL_EXIT DutoWind_Exit()
 string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
+   //Print("AskThePlots2Strategy Idx: " + Idx);
+   //Print("AskThePlots2Strategy Idx: " + (UpperTimeFrame + 6));
 
    /* Print("CombinedHistory[CndleStart][26]: " + CombinedHistory[CndleStart][26]);
    Print("CombinedHistory[CndleStart][27]: " + CombinedHistory[CndleStart][27]);
@@ -2062,21 +2148,21 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
 
       //HIGHER TIME FRAME
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][26] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 6)] > 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][27] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][28] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][29] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
 
       //LOWER TIME FRAME
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][37] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][38] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][39] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0
       )
    {
       CurrentStrategy = OverallStrategy; 
@@ -2097,21 +2183,21 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
 
       //HIGHER TIME FRAME
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][26] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 6)] < 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][27] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] < 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][28] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][29] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
 
       //LOWER TIME FRAME
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][37] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] < 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][38] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 +8)] < 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][39] < 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] < 0
       )
    {
       CurrentStrategy = OverallStrategy; 
@@ -2152,6 +2238,7 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
 string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
+   //Print("AskThePlots2StrategyEntry Idx: " + Idx);
 
    //ENTRY LOGIC
 
@@ -2168,6 +2255,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
 
       && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
+
+      && CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
@@ -2195,6 +2284,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
 
+      && CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
       && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
@@ -2206,8 +2297,6 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
 
       result = "ENTER A SAFETY TRADE SELL";
    }
-
-   
 
    return result;
 }
@@ -2925,13 +3014,13 @@ string AskThePlots(int Idx, int CndleStart, int CmbndHstryCandleLength, string O
    return result;
 }
 
-//int BarColorCount (int Idx, string PosNeg){
-double BarColorCount (int Idx, string PosNeg){
+double BarColorCount (int Idx, string Command){
+
 
    int count = 1;
    float barSum = 0.0;
 
-   if (PosNeg == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
+   if (Command == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
    {
       do 
      { 
@@ -2939,9 +3028,23 @@ double BarColorCount (int Idx, string PosNeg){
       count++; // without this operator an infinite loop will appear! 
      } 
       while(CombinedHistory[count + 1][Idx] < 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      //if(count <= 20)
+      if(count <= BarCountThreshold)
+      {
+         return MathAbs(barSum)/count;
+      }
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      } 
    }
    else
-   if (PosNeg == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
+   if (Command == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
    {
       do 
      { 
@@ -2949,14 +3052,28 @@ double BarColorCount (int Idx, string PosNeg){
       count++; // without this operator an infinite loop will appear! 
      } 
       while(CombinedHistory[count + 1][Idx] > 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      //if(count <= 20)
+      if(count <= BarCountThreshold)
+      {
+         return MathAbs(barSum)/count;
+      } 
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      }     
    }
 
-   Print("Bar sum absolute value: " + MathAbs(barSum));
+   /* Print("Bar sum absolute value: " + MathAbs(barSum));
    Print("Returned BarColorCount: " + count);
-   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6)); */
 
-   //return count;
-   return MathAbs(barSum)/count;
+   return 99.99;
+   //return MathAbs(barSum)/count;
 }
 
 //DutoWind
