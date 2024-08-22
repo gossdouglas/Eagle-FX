@@ -3126,6 +3126,43 @@ double BarColorCount (int Idx, string Command){
    //return MathAbs(barSum)/count;
 }
 
+double GetLastHighestLowest(string command, int timeframe, int timeseries, int count, int start)
+{
+   double result;
+
+   /* switch (command)
+   {
+      case 'HIGHEST':
+         result = High[iHighest(Symbol(), timeframe, MODE_HIGH, count, start)];
+         break;
+      //return High[iHighest(Symbol(), timeframe, MODE_HIGH, count, start)];
+
+      case 'LOWEST':
+         result = Low[iLowest(Symbol(), timeframe, MODE_LOW, count, start)];
+         break;
+      //return Low[iLowest(Symbol(), timeframe, MODE_LOW, count, start)];
+
+      default:
+         result = 99.99;
+         break;
+   } */
+
+  switch(command)
+  {
+   case 'A':
+      Print("CASE A");
+      break;
+   case 'B':
+   case 'C':
+      Print("CASE B or C");
+      break;
+   default:
+      Print("NOT A, B or C");
+      break;
+  }
+
+   return result;
+}
 //DutoWind
 
 //END DUTO STRATEGY, ENTRY AND EXIT
