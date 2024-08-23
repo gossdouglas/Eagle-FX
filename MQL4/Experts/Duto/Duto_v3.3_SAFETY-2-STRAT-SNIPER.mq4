@@ -2288,7 +2288,14 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
 string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
-   //Print("AskThePlots2StrategyEntry Idx: " + Idx);
+
+   /* Print("AskThePlots2StrategyEntry Idx: " + Idx);
+   Print("BuyStrategyActive: " + BuyStrategyActive);
+   Print("OverallStrategy: " + OverallStrategy);
+   Print("BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy);
+   Print("Condition 1: " + (CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]));
+   Print("Condition 2: " + (CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0));
+   Print("Condition 3: " + (CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1])); */
 
    //ENTRY LOGIC
 
@@ -2299,24 +2306,17 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && OverallStrategy == "BUY_ST_ENTRY"
       && BuySafetyTrade2Strategy == true
 
-      //timeframe above
-      //commented out because i was missing out on a lot of good trades
-      //&& CombinedHistory[CndleStart][26] > CombinedHistory[CndleStart + 1][26]
-
       && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
 
-      && CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
+      //plot 2 is increasing
+      //&& CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
       && BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
       )
-   {  
-      /* Print("[Idx-10]: " + (26));
-      Print("CombinedHistory[CndleStart][26]: " + NormalizeDouble(CombinedHistory[CndleStart][26] ,8));
-      Print(BarColorCount(Idx, "NEGATIVE"));   */
-
+   { 
       result = "ENTER A SAFETY TRADE BUY";
    }
 
@@ -2334,17 +2334,14 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
 
-      && CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+      //plot 2 is decreasing
+      //&& CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
       && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
       )
    {  
-      /* Print("[Idx-10]: " + (26));
-      Print("CombinedHistory[CndleStart][26]: " + NormalizeDouble(CombinedHistory[CndleStart][26] ,8));
-      Print(BarColorCount(Idx, "NEGATIVE"));   */
-
       result = "ENTER A SAFETY TRADE SELL";
    }
 
