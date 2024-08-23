@@ -274,6 +274,10 @@ string strWriteLine, strWriteLine2 = "";
 int fileHandleIndicatorData;
 int periodArray[] = {60, 15, 5};
 
+//sniper variables
+input int LookBackCountSniper = 20;
+double LastHighest, LastLowest;
+
 
 //-NATIVE MT4 EXPERT ADVISOR RUNNING FUNCTIONS-//
 
@@ -461,6 +465,7 @@ void InitializeEASettingsComments()
    SettingsComments = SettingsComments + "Upper Timeframe : " + str + "\n";
    SettingsComments = SettingsComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
    SettingsComments = SettingsComments + "Bar Count Limit : " + BarCountThreshold + "\n";
+   SettingsComments = SettingsComments + "Sniper Lookback Count : " + LookBackCountSniper + "\n";
 
    Comment(SettingsComments);  
 }
@@ -501,8 +506,15 @@ void EvaluateEntry()
 
       //log data and build the CombinedHistory array
       LogIndicatorData();
-
+      //evaluate for a strategy
       DutoWind_SelectedStrategy();
+
+      //find the last highest and lowest
+      LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCountSniper, 1);
+      LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCountSniper, 1);
+      CandleComments = CandleComments + 
+      "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
+
       StartupFlag = true;
 
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
@@ -511,15 +523,6 @@ void EvaluateEntry()
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
    if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar && (!TotalOpenOrders > 0))
    { 
-      /* if (!IsSpreadOK)
-      return; // If the spread is too high don't give an entry signal
-
-   if (IsTradedThisBar)
-      return; // If you don't want to execute multiple trades in the same bar
-
-   if (TotalOpenOrders > 0)
-      return; // If there are already open orders and you don't want to open more */
-
       // evaluate for a signal entry
       SignalEntry = ReturnSignalEntryToEvaluateEntry();
    }
@@ -774,8 +777,8 @@ void CheckSpread()
       IsSpreadOK = false;
    }
 
-   PipComments = PipComments + "IsSpreadOK: " + IsSpreadOK + " SpreadCurr: " + SpreadCurr + 
-   " MaxSpread: " + MaxSpread + "\n";
+   PipComments = PipComments + "IsSpreadOK: " + IsSpreadOK + "--SpreadCurr: " + SpreadCurr + 
+   "--MaxSpread: " + MaxSpread + "\n";
 
    //Print("SpreadCurr: " + SpreadCurr + "MaxSpread: " + MaxSpread);
    //Print("IsSpreadOK: " + IsSpreadOK);
@@ -3126,37 +3129,41 @@ double BarColorCount (int Idx, string Command){
 double GetLastHighestLowest(string command, int timeframe, int timeseries, int count, int start)
 {
    double result;
+   int returnedCandle;
 
-   /* switch (command)
+  if (command == "HIGHEST")
    {
-      case 'HIGHEST':
-         result = High[iHighest(Symbol(), timeframe, MODE_HIGH, count, start)];
-         break;
-      //return High[iHighest(Symbol(), timeframe, MODE_HIGH, count, start)];
+      returnedCandle = iHighest(Symbol(), Period(), MODE_HIGH, count, start);
 
-      case 'LOWEST':
-         result = Low[iLowest(Symbol(), timeframe, MODE_LOW, count, start)];
-         break;
-      //return Low[iLowest(Symbol(), timeframe, MODE_LOW, count, start)];
 
-      default:
-         result = 99.99;
-         break;
-   } */
+      ObjectDelete("objLastHighest");
+      ObjectCreate("objLastHighest", OBJ_HLINE, 0, Time[0], High[returnedCandle]);
+      ObjectSet("objLastHighest", OBJPROP_COLOR,clrSeaGreen);
+      ObjectSet("objLastHighest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
 
-  switch(command)
-  {
-   case 'A':
-      Print("CASE A");
-      break;
-   case 'B':
-   case 'C':
-      Print("CASE B or C");
-      break;
-   default:
-      Print("NOT A, B or C");
-      break;
-  }
+      /* CandleComments = CandleComments + 
+      "Last Highest: " + High[returnedCandle] + " at candle " + returnedCandle + "\n"; */
+
+      result = High[returnedCandle];
+   }
+  else
+   if (command == "LOWEST")
+   {
+      returnedCandle = iLowest(Symbol(), Period(), MODE_LOW, count, start);
+      ObjectDelete("objLastLowest");
+      ObjectCreate("objLastLowest", OBJ_HLINE, 0, Time[0], Low[returnedCandle]);
+      ObjectSet("objLastLowest", OBJPROP_COLOR, clrFireBrick);
+      ObjectSet("objLastLowest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
+
+      /* CandleComments = CandleComments + 
+      "Last Lowest: " + Low[returnedCandle] + " at candle " + returnedCandle + "\n"; */
+
+      result = Low[returnedCandle];
+   }
+  else
+   {
+      result == 99.99;
+   }
 
    return result;
 }
