@@ -201,13 +201,15 @@ string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
 string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
 string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
 string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
-string duto_sniper = "_Custom\\Duto\\SchaffTrendCycle";
+string duto_sniper = "_Custom\\Duto\\Sniper_v1";
 string strWriteLine, strWriteLine2 = "";
 int fileHandleIndicatorData;
 int periodArray[] = {60, 15, 5};
 
 //SNIPER VARIABLES
 double LastHighest, LastLowest;
+bool SniperCockedHigh, SniperCockedLow, SniperCockedNeutral;
+
 
 //********************************************************************************************************
 //-INPUT PARAMETERS-//
@@ -440,10 +442,13 @@ void EvaluateEntry()
       LogIndicatorData();
       //evaluate for a strategy
       DutoWind_SelectedStrategy();
+      //evaluate the sniper
+      EvaluateSniper();
 
       //find the last highest and lowest
       LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
       LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1);
+
       CandleComments = CandleComments + 
       "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
 
@@ -1014,8 +1019,11 @@ bool ScanOrders()
 }
 
 //********************************************************************************************************
+
 //-DUTO SPECIFIC EXPERT ADVISOR RUNNING FUNCTIONS-//
+
 //********************************************************************************************************
+
 // Initialize 
 void InitializeEASettingsComments()
 {
@@ -1029,9 +1037,11 @@ void InitializeEASettingsComments()
      case 0: 
       str = "1 HOUR"; 
       break; 
+
       case 10: 
       str = "15 MINUTE"; 
       break; 
+
       case 20: 
       str = "5 MINUTE"; 
       break; 
@@ -1430,7 +1440,9 @@ void LogIndicatorData()
 }
 
 //********************************************************************************************************
+
 //BEGIN DUTO STRATEGY, ENTRY AND EXIT
+
 //********************************************************************************************************
 
 //DutoWind
@@ -1440,6 +1452,56 @@ void DutoWind_SelectedStrategy()
 {
    DutoWind_2Strategy();
    CandleComments = CandleComments + "Current Strategy : " + CurrentStrategy + "\n";
+}
+
+void EvaluateSniper()
+{
+   int sniperIndex;
+   string str;
+
+   switch (UpperTimeFrame)
+   {
+      case 0: 
+      sniperIndex = 0; 
+      break; 
+
+      case 10: 
+      sniperIndex = 1; 
+      break; 
+
+      case 20: 
+      sniperIndex = 2; 
+      break;  
+   }
+
+   if (CombinedHistory[1][(40 + sniperIndex)] == 99)
+   {
+      str = "HIGH";
+      SniperCockedHigh = true;
+      SniperCockedLow = false;
+      SniperCockedNeutral = false;
+   }
+   else
+   if (CombinedHistory[1][(40 + sniperIndex)] == 0)
+   {
+      SniperCockedHigh = false;
+      SniperCockedLow = true;
+      SniperCockedNeutral = false;
+      str = "LOW";
+   }
+   else
+   {
+      SniperCockedHigh = false;
+      SniperCockedLow = false;
+      SniperCockedNeutral = true;
+      str = "NEUTRAL";
+   }
+      
+   CandleComments = CandleComments + "Sniper Upper Timeframe : " + CombinedHistory[1][(40 + sniperIndex)] + "\n";
+   CandleComments = CandleComments + "Sniper Cocked : " + str + "\n";
+   CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
+   CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
+   CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
 }
 
 void DutoWind_2Strategy()
@@ -2230,7 +2292,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
-      && BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
+      //&& BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
+      && SniperCockedHigh
       )
    { 
       result = "ENTER A SAFETY TRADE BUY";
@@ -2255,7 +2318,8 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
-      && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      //&& BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      && SniperCockedLow
       )
    {  
       result = "ENTER A SAFETY TRADE SELL";

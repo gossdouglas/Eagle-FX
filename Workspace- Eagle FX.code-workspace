@@ -6,7 +6,9 @@
 	],
 	"settings": {
 		"files.associations": {
-			"*.mq4": "c"
+			"*.mq4": "c",
+			"*.mqh": "c",
+			"*.dat": "c"
 		}
 	}
 }
