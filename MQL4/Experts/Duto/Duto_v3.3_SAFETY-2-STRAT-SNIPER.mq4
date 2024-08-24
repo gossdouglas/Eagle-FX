@@ -238,11 +238,20 @@ enum ENUM_UPPER_TIME_FRAME
    TIME_FRAME_M5 = 20, // M5
 };
 
+//selected time frame
+enum ENUM_EXIT_PLOT
+{
+   PLOT_1 = 6, // MACD
+   PLOT_2 = 7, // Plot 2
+};
+
 //upper left information section
 input string Comment_5 = "=========="; // Duto Specific Settings
 input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_M5; // Upper time frame
 input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 input double BarCountThreshold = 20;  // Bar Count Threshold
+input int LookBackCountSniper = 20;
+input ENUM_EXIT_PLOT TradeExitPlot = 6; // Trade Exit Plot
 
 //only allows an evaluation to be made if LogIndicatorData has been executed at least once
 bool StartupFlag;
@@ -275,7 +284,6 @@ int fileHandleIndicatorData;
 int periodArray[] = {60, 15, 5};
 
 //sniper variables
-input int LookBackCountSniper = 20;
 double LastHighest, LastLowest;
 
 
@@ -466,6 +474,19 @@ void InitializeEASettingsComments()
    SettingsComments = SettingsComments + "S Trade Ratio Limit : " + BarColorCountThreshold + "\n";
    SettingsComments = SettingsComments + "Bar Count Limit : " + BarCountThreshold + "\n";
    SettingsComments = SettingsComments + "Sniper Lookback Count : " + LookBackCountSniper + "\n";
+   SettingsComments = SettingsComments + "Sniper Lookback Count : " + LookBackCountSniper + "\n";
+
+   switch (TradeExitPlot)
+   {
+     case 6: 
+      str = "MACD"; 
+      break; 
+      case 7: 
+      str = "PLOT 2"; 
+      break; 
+   }
+
+   SettingsComments = SettingsComments + "Exit Plot : " + str + "\n";
 
    Comment(SettingsComments);  
 }
@@ -1455,48 +1476,6 @@ ENUM_SIGNAL_EXIT ReturnSignalExitToEvaluateExit()
    return SignalExit;
 }
 
-double FastMAIndicatorHistory[100];
-double SlowMAIndicatorHistory[100];
-double DeltaCIndicatorHistory[100];
-double FiveFiftyIndicatorHistory[100];
-
-double MacdIndicatorHistory[100];
-double Plot2IndicatorHistory[100];
-double Plot3IndicatorHistory[100];
-double Plot4IndicatorHistory[100];
-
-void GetIndicatorHistory(int indicatorIndex, int numCandles)
-{
-   //resize the arrays to match the passed number of candles of interest
-   ArrayResize(FastMAIndicatorHistory, numCandles);
-   ArrayResize(SlowMAIndicatorHistory, numCandles);
-   ArrayResize(DeltaCIndicatorHistory, numCandles);
-   ArrayResize(FiveFiftyIndicatorHistory, numCandles);
-
-   ArrayResize(MacdIndicatorHistory, numCandles);
-   ArrayResize(Plot2IndicatorHistory, numCandles);
-   ArrayResize(Plot3IndicatorHistory, numCandles);
-   ArrayResize(Plot4IndicatorHistory, numCandles);
-
-   //Print("Resize DeltaCIndicatorHistory to " + (numCandles));
-
-   for (int candleNumber = 0; candleNumber <= numCandles - 1; candleNumber++)
-   {
-      FastMAIndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex];
-      SlowMAIndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex + 1];
-      DeltaCIndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex] + 2;
-      FiveFiftyIndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex + 3];
-
-      MacdIndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex + 4];
-      Plot2IndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex + 5];
-      Plot3IndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex + 6];
-      Plot4IndicatorHistory[candleNumber] = CombinedHistory[candleNumber][indicatorIndex + 7];
-
-      //Print("DeltaCIndicatorHistory[" + candleNumber + "]: " + DeltaCIndicatorHistory[candleNumber]);
-      //Print("DeltaCIndicatorHistory[" + candleNumber + "]: " + DeltaCIndicatorHistory[candleNumber]);
-   }
-}
-
 //DutoWind
 
 double EntryData[2][11];
@@ -1670,7 +1649,7 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    //BUY EXIT
    if (
       //AskThePlots2StrategyExit(37, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
-      AskThePlots2StrategyExit(UpperTimeFrame + 10 + 7, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
+      AskThePlots2StrategyExit(UpperTimeFrame + 10 + TradeExitPlot, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
       //AskThePlots2StrategyExit(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_EXIT") == "EXIT A SAFETY TRADE BUY"
       && BuyStrategyActive == true 
       && BuyTradeActive == true
@@ -1692,7 +1671,7 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
    //SELL EXIT
    if (
       //AskThePlots2StrategyExit(37, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
-      AskThePlots2StrategyExit(UpperTimeFrame + 10 + 7, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
+      AskThePlots2StrategyExit(UpperTimeFrame + 10 + TradeExitPlot, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
       //AskThePlots2StrategyExit(UpperTimeFrame + 10 + 6, 1, 1, "SELL_ST_EXIT") == "EXIT A SAFETY TRADE SELL"
       && SellStrategyActive == true 
       && SellTradeActive == true
@@ -3167,6 +3146,7 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
 
    return result;
 }
+
 //DutoWind
 
 //END DUTO STRATEGY, ENTRY AND EXIT
