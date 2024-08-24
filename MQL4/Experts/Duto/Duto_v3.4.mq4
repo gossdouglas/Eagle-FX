@@ -142,6 +142,13 @@ enum ENUM_EXIT_PLOT
    PLOT_2 = 7, // Plot 2
 };
 
+//selected allow opposite dark on plot 2
+enum ENUM_ALLOW_OPP_PL2
+{
+   ALLOW_OPP_PL2_YES = 1, // YES
+   ALLOW_OPP_PL2_NO = 0, // NO
+};
+
 //upper left information section
 input string Comment_5 = "=========="; // Duto Specific Settings
 input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_M5; // Upper time frame
@@ -149,6 +156,7 @@ input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 input double BarCountThreshold = 20;  // Bar Count Threshold
 input int LookBackCount = 20;
 input ENUM_EXIT_PLOT TradeExitPlot = 6; // Trade Exit Plot
+input ENUM_ALLOW_OPP_PL2 AllowOppDkPlot2 = 1; // Allow Entry if Plot 2 is Opp Dark
 
 //********************************************************************************************************
 //DUTO EA SPECIFIC VARIABLES
