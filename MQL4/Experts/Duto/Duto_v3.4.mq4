@@ -443,7 +443,7 @@ void EvaluateEntry()
       //evaluate for a strategy
       DutoWind_SelectedStrategy();
       //evaluate the sniper
-      EvaluateSniper();
+      //EvaluateSniper();
 
       //find the last highest and lowest
       LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
