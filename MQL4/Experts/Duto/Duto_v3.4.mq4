@@ -2288,12 +2288,12 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
 
       //plot 2 is increasing
-      //&& CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
+      && CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
-      //&& BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
-      && SniperCockedHigh
+      && BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
+      // SniperCockedHigh
       )
    { 
       result = "ENTER A SAFETY TRADE BUY";
@@ -2314,12 +2314,12 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
 
       //plot 2 is decreasing
-      //&& CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+      && CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
 
       //this version calculates the ratio between the sum of the bars and the number of the bars
       //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
-      //&& BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
-      && SniperCockedLow
+      && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      // SniperCockedLow
       )
    {  
       result = "ENTER A SAFETY TRADE SELL";
@@ -2350,8 +2350,8 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
             && CombinedHistory[CndleStart][Idx] > 0)
          ||
             //exit if the macd turns to avoid losses
-            CombinedHistory[CndleStart][Idx - 1] < 0
-            //CombinedHistory[0][Idx - 1] < 0
+            //CombinedHistory[CndleStart][Idx - 1] < 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0
          )
       )
    {
@@ -2371,8 +2371,8 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
             && CombinedHistory[CndleStart][Idx] < 0)
          ||
             //exit if the macd turns to avoid losses
-            CombinedHistory[CndleStart][Idx - 1] > 0
-            //CombinedHistory[0][Idx - 1] < 0
+            //CombinedHistory[CndleStart][Idx - 1] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0
          )
       )
    {
