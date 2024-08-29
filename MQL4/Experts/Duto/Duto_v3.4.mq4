@@ -591,7 +591,7 @@ void EvaluateExit()
    {
       // Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
       // log data and build the CombinedHistory array
-      //LogIndicatorData();
+      LogIndicatorData();
       StartupFlag = true;
    }
 
@@ -599,7 +599,7 @@ void EvaluateExit()
    if (StartupFlag == true)
    {
       // evaluate for a signal entry
-      //SignalExit = ReturnSignalExitToEvaluateExit();
+      SignalExit = ReturnSignalExitToEvaluateExit();
    }
 }
 
@@ -1778,9 +1778,9 @@ void SuddenDarkStrategy()
       //close all sell trades
       //CloseAll(OP_SELL);
 
-      /* Print("SUDDEN DARK NEUTRAL STRATEGY IN EFFECT. SellSuddenDarkStrategy: " + SellSuddenDarkStrategy + 
+      Print("SUDDEN DARK NEUTRAL STRATEGY IN EFFECT. SellSuddenDarkStrategy: " + SellSuddenDarkStrategy + 
       " BuySuddenDarkStrategy: " + BuySuddenDarkStrategy 
-      + " NeutralSuddenDarkStrategy: " + NeutralSuddenDarkStrategy);  */  
+      + " NeutralSuddenDarkStrategy: " + NeutralSuddenDarkStrategy); 
    }
 }
 
@@ -2115,16 +2115,24 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
       OverallStrategy == "SDDN_DK_SELL_BR_GREEN_DK_GREEN"
 
       //candle 1 less than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0 
       
       //candle 2 greater than or equal to candle 3
       && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart + 1][Idx] > 0 
+
       //candle 3 greater than or equal to candle 4
       && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart + 2][Idx] > 0 
+
       //candle 3 greater than or equal to candle 4
       && NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 4][Idx] ,7) 
       //candle 1 is positive
-      && CombinedHistory[CndleStart][Idx] > 0
+      && CombinedHistory[CndleStart + 3][Idx] > 0   
       )
    {
       OpportunityStrategy = OverallStrategy; 
@@ -2191,8 +2199,6 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
 {
    string result = "";
 
-   Print("Idx: " + Idx);
-
    //EXIT LOGIC
 
    //ACTIVE
@@ -2205,10 +2211,10 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
             (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
             && Ask < EntryData[0][10]
             && CombinedHistory[CndleStart][Idx] < 0)
-         ||
+         /* ||
             //exit if the macd turns to avoid losses
             //CombinedHistory[CndleStart][Idx - 1] > 0
-            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0 */
          )
       )
    {
