@@ -24,11 +24,11 @@ TradeExitPlot,F=0
 TradeExitPlot,1=0
 TradeExitPlot,2=0
 TradeExitPlot,3=0
-AllowOppDkPlot2=1
-AllowOppDkPlot2,F=0
-AllowOppDkPlot2,1=0
-AllowOppDkPlot2,2=0
-AllowOppDkPlot2,3=0
+SuddenDarkEnabled=1
+SuddenDarkEnabled,F=0
+SuddenDarkEnabled,1=0
+SuddenDarkEnabled,2=0
+SuddenDarkEnabled,3=0
 Comment_0===========
 RiskDefaultSize=2
 RiskDefaultSize,F=0
@@ -71,7 +71,7 @@ PSARStopMax,1=0.40000000
 PSARStopMax,2=0.00000000
 PSARStopMax,3=0.00000000
 Comment_1===========
-UseTradingHours=0
+UseTradingHours=1
 UseTradingHours,F=0
 UseTradingHours,1=0
 UseTradingHours,2=1

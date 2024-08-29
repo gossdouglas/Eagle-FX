@@ -454,13 +454,13 @@ void EvaluateEntry()
       //log data and build the CombinedHistory array
       LogIndicatorData();
       //evaluate for a strategy
-      DutoWind_SelectedStrategy();
+      //DutoWind_SelectedStrategy();
 
       //evaluate the sniper
       //EvaluateSniper();
 
       //evaluate the sudden dark opportunity trade
-      if (SuddenDarkEnabled == 1)
+      if (SuddenDarkEnabled == 1 && UseTradingHours && IsOperatingHours)
       {
          EvaluateSuddenDark();
       }
@@ -591,7 +591,7 @@ void EvaluateExit()
    {
       // Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
       // log data and build the CombinedHistory array
-      LogIndicatorData();
+      //LogIndicatorData();
       StartupFlag = true;
    }
 
@@ -599,7 +599,7 @@ void EvaluateExit()
    if (StartupFlag == true)
    {
       // evaluate for a signal entry
-      SignalExit = ReturnSignalExitToEvaluateExit();
+      //SignalExit = ReturnSignalExitToEvaluateExit();
    }
 }
 
@@ -1105,8 +1105,8 @@ ENUM_SIGNAL_ENTRY ReturnSignalEntryToEvaluateEntry()
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
    //check for an entry
-   //SignalEntry = DutoWind_Entry();
-   SignalEntry = DutoWind_2StrategyEntry();
+   //SignalEntry = DutoWind_2StrategyEntry();
+   SignalEntry = SuddenDarkStrategyEntry();
 
    return SignalEntry;
 }
@@ -1717,7 +1717,8 @@ void SuddenDarkStrategy()
 
    //BUY SUDDEN DARK
    if (
-      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 6), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
       && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
       )
    {
@@ -1739,7 +1740,8 @@ void SuddenDarkStrategy()
 
    //SELL SUDDEN DARK 
    if (
-      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 6), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
       && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
       )
    {
@@ -1782,6 +1784,43 @@ void SuddenDarkStrategy()
    }
 }
 
+ENUM_SIGNAL_ENTRY SuddenDarkStrategyEntry()
+{
+   //ENTRY LOGIC
+
+   //don't allow new trades to be made outside of the selected trading hours
+   if (UseTradingHours && !IsOperatingHours)
+   {
+      SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+      return SignalEntry; // If you are using trading hours and it's not a trading hour don't give an entry signal
+   } 
+
+   //SUDDEN DARK SELL ENTRY
+   if (
+      SellSuddenDarkStrategy == true
+         /* (AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
+         && BuyStrategyActive == true 
+         && BuyTradeActive == false
+
+         && BuySafetyTrade2Strategy == true */
+      )
+   {
+      //SellTradeActive = true;
+      SuddenDarkSellActive = true;
+
+      Print("ENTER A SUDDEN DARK TRADE SELL." +
+      "SuddenDarkSellActive: " + SuddenDarkSellActive + 
+      " SuddenDarkBuyActive: " + SuddenDarkBuyActive + 
+      " SellSuddenDarkStrategy: " + SellSuddenDarkStrategy);
+
+      EntryData[0][10] = Bid;
+      SignalEntry = SIGNAL_ENTRY_SELL;
+   }
+
+   //SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+
+   return SignalEntry;
+}
 
 
 //functions
@@ -2046,8 +2085,13 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
 
       //candle 1 less than or equal to candle 2
       && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      
       //candle 2 greater than or equal to candle 3
       && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 3 greater than or equal to candle 4
+      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      //candle 3 greater than or equal to candle 4
+      && NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 4][Idx] ,7) 
       //candle 1 is positive
       && CombinedHistory[CndleStart][Idx] > 0
       )
@@ -2079,11 +2123,6 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
 
    return result;
 }
-
-
-
-
-
 
 double BarColorCount (int Idx, string Command){
 
