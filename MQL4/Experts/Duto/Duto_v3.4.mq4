@@ -1118,8 +1118,8 @@ ENUM_SIGNAL_EXIT ReturnSignalExitToEvaluateExit()
    SignalExit = SIGNAL_EXIT_NEUTRAL;
 
    //check for an exit
-   //SignalExit = DutoWind_Exit();
-   SignalExit = DutoWind_2StrategyExit();
+   //SignalExit = DutoWind_2StrategyExit();
+   SignalExit = SuddenDarkStrategyExit();
 
    return SignalExit;
 }
@@ -1796,13 +1796,12 @@ ENUM_SIGNAL_ENTRY SuddenDarkStrategyEntry()
    } 
 
    //SUDDEN DARK SELL ENTRY
-   if (
-      SellSuddenDarkStrategy == true
-         /* (AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
-         && BuyStrategyActive == true 
-         && BuyTradeActive == false
-
-         && BuySafetyTrade2Strategy == true */
+   if (    
+         (AskThePlotsSuddenDarkEntry(UpperTimeFrame + 10 + 6, 1, 1, "SELL_SDDN_DARK_ENTRY") == "ENTER A SDDN DARK TRADE SELL")
+         //&& BuyStrategyActive == true 
+         //&& BuyTradeActive == false
+         //&& BuySafetyTrade2Strategy == true
+         && SellSuddenDarkStrategy == true
       )
    {
       //SellTradeActive = true;
@@ -1820,6 +1819,38 @@ ENUM_SIGNAL_ENTRY SuddenDarkStrategyEntry()
    //SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
    return SignalEntry;
+}
+
+ENUM_SIGNAL_EXIT SuddenDarkStrategyExit()
+{ 
+   //EXIT LOGIC
+
+   //ACTIVE
+   //SELL EXIT
+   if (
+      AskThePlotsSuddenDarkExit(UpperTimeFrame + 10 + 6, 1, 1, "SELL_SDDN_DARK_EXIT") == "EXIT A SDDN DARK TRADE SELL"
+      && SuddenDarkSellActive == true
+      //&& SellStrategyActive == true 
+      //&& SellTradeActive == true
+
+      //&& SellSafetyTrade2Strategy == true
+      //&& Bid > EntryData[1][10] //current price is greater than the price it was entered at
+      )
+   {
+      SuddenDarkSellActive = false;
+      //BuyBrRdDkRdStrategyActive = false;
+
+      Print("EXIT A SUDDEN DARK TRADE SELL." +
+      "SuddenDarkSellActive: " + SuddenDarkSellActive + 
+      " SuddenDarkBuyActive: " + SuddenDarkBuyActive + 
+      " SellSuddenDarkStrategy: " + SellSuddenDarkStrategy);
+      
+      SignalExit = SIGNAL_EXIT_SELL;
+   }
+
+   //SignalExit = SIGNAL_EXIT_NEUTRAL;
+
+   return SignalExit;
 }
 
 
@@ -2119,6 +2150,70 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
          + " NeutralStrategyActive: " + NeutralStrategyActive);
          Print("NeutralSafetyTrade2Strategy: " + NeutralSafetyTrade2Strategy);  
       }  */
+   }
+
+   return result;
+}
+
+string AskThePlotsSuddenDarkEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //ENTRY LOGIC
+
+   //ACTIVE
+   //SELL ENTRY SAFETY TRADE
+   if (
+      1 == 1
+      /* SellStrategyActive == true 
+      && OverallStrategy == "SELL_ST_ENTRY"
+      && SellSafetyTrade2Strategy == true
+
+      && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
+
+      //plot 2 is decreasing
+      && CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+
+      //this version calculates the ratio between the sum of the bars and the number of the bars
+      //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
+      && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      // SniperCockedLow */
+      )
+   {  
+      result = "ENTER A SDDN DARK TRADE SELL";
+   }
+
+   return result;
+}
+
+string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   Print("Idx: " + Idx);
+
+   //EXIT LOGIC
+
+   //ACTIVE
+   //SELL EXIT SUDDEN DARK
+   if (
+      OverallStrategy == "SELL_SDDN_DARK_EXIT" 
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
+            && Ask < EntryData[0][10]
+            && CombinedHistory[CndleStart][Idx] < 0)
+         ||
+            //exit if the macd turns to avoid losses
+            //CombinedHistory[CndleStart][Idx - 1] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0
+         )
+      )
+   {
+      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
+      result = "EXIT A SDDN DARK TRADE SELL";
    }
 
    return result;
