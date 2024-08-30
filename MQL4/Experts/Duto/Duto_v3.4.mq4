@@ -2334,24 +2334,22 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
 
    //EXIT LOGIC
 
-   //ACTIVE
    //BUY EXIT SAFETY TRADE
    if (
       OverallStrategy == "BUY_ST_EXIT" 
-      
-      /* && CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
-      && Bid > EntryData[1][10]
-      && CombinedHistory[CndleStart][Idx] > 0  */
 
       && 
          (  //typical take profit exit
-            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
-            && Bid > EntryData[1][10]
-            && CombinedHistory[CndleStart][Idx] > 0)
-         ||
+            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
+
+            //commented out the bid/ask restriction so I can exit early
+            //if the macd goes bad
+            //&& Bid > EntryData[1][10]
+            //&& CombinedHistory[CndleStart][Idx] > 0
+            )
+         /* ||
             //exit if the macd turns to avoid losses
-            //CombinedHistory[CndleStart][Idx - 1] < 0
-            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0 */
          )
       )
    {
@@ -2359,7 +2357,6 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
       result = "EXIT A SAFETY TRADE BUY";
    }
 
-   //ACTIVE
    //SELL EXIT SAFETY TRADE
    if (
       OverallStrategy == "SELL_ST_EXIT" 
@@ -2367,12 +2364,14 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
       && 
          (  //typical take profit exit
             (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
-            && Ask < EntryData[0][10]
-            && CombinedHistory[CndleStart][Idx] < 0)
-         ||
+            //commented out the bid/ask restriction so I can exit early
+            //if the macd goes bad
+            //&& Ask < EntryData[0][10]
+            //&& CombinedHistory[CndleStart][Idx] < 0
+            )
+         /* ||
             //exit if the macd turns to avoid losses
-            //CombinedHistory[CndleStart][Idx - 1] > 0
-            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0 */
          )
       )
    {
