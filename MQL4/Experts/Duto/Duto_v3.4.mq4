@@ -467,15 +467,11 @@ void EvaluateEntry()
 
      EvaluateSuddenDark();
 
-      //find the last highest and lowest
-      /* LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
-      LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1); */
-
-      LastHighest = GetLastHighestLowest("HIGHEST", 5, MODE_HIGH, LookBackCount, 1);
+      /* LastHighest = GetLastHighestLowest("HIGHEST", 5, MODE_HIGH, LookBackCount, 1);
       LastLowest =GetLastHighestLowest("LOWEST", 5, MODE_LOW, LookBackCount, 1);
 
       CandleComments = CandleComments + 
-      "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
+      "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n"; */
 
       StartupFlag = true;
 
@@ -1822,6 +1818,7 @@ ENUM_SIGNAL_ENTRY SuddenDarkStrategyEntry()
    {
       //SellTradeActive = true;
       SuddenDarkBuyActive = true;
+      LastHighest = GetLastHighestLowest("HIGHEST", 5, MODE_HIGH, LookBackCount, 1);
 
       Print("ENTER A SUDDEN DARK TRADE BUY." +
       "SuddenDarkSellActive: " + SuddenDarkSellActive + 
@@ -1843,6 +1840,7 @@ ENUM_SIGNAL_ENTRY SuddenDarkStrategyEntry()
    {
       //SellTradeActive = true;
       SuddenDarkSellActive = true;
+      LastLowest =GetLastHighestLowest("LOWEST", 5, MODE_LOW, LookBackCount, 1);
 
       Print("ENTER A SUDDEN DARK TRADE SELL." +
       "SuddenDarkSellActive: " + SuddenDarkSellActive + 
@@ -2152,8 +2150,6 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
 string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
-   Print("Idx: " + Idx);
-   Print("OverallStrategy: " + OverallStrategy);
 
    //BUY STRATEGY, BRIGHT RED TO DARK RED
    if (
@@ -2170,16 +2166,6 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
       && CombinedHistory[CndleStart + 1][Idx] < 0 
       //candle 3 is negative
       && CombinedHistory[CndleStart + 3][Idx] < 0 
-
-      /* //candle 3 greater than or equal to candle 4
-      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
-      //candle 1 is positive
-      && CombinedHistory[CndleStart + 2][Idx] < 0 
-
-      //candle 3 greater than or equal to candle 4
-      && NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 4][Idx] ,7) 
-      //candle 1 is positive
-      && CombinedHistory[CndleStart + 3][Idx] < 0  */
       )
    {
       OpportunityStrategy = OverallStrategy; 
@@ -2316,7 +2302,7 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
             && Bid > EntryData[1][10]
             && CombinedHistory[CndleStart][Idx] > 0)
             ||
-            (Bid > EntryData[1][10] + 20 * Point)
+            (Bid > EntryData[1][10] + 60 * Point)
             ||
             (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
             && CombinedHistory[CndleStart][Idx] < 0)
@@ -2327,6 +2313,7 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
          )
       )
    {
+      ObjectDelete("objLastHighest");
       //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
       result = "EXIT A SDDN DARK TRADE BUY";
    }
@@ -2343,7 +2330,7 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
             && Ask < EntryData[0][10]
             && CombinedHistory[CndleStart][Idx] < 0)
             ||
-            (Ask < EntryData[0][10] - 20 * Point)
+            (Ask < EntryData[0][10] - 60 * Point)
             ||
             (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
             && CombinedHistory[CndleStart][Idx] >0)
@@ -2354,6 +2341,7 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
          )
       )
    {
+      ObjectDelete("objLastLowest");
       //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
       result = "EXIT A SDDN DARK TRADE SELL";
    }
