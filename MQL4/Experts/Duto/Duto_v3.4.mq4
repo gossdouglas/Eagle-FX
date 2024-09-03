@@ -459,15 +459,20 @@ void EvaluateEntry()
       //evaluate the sniper
       //EvaluateSniper();
 
-      //evaluate the sudden dark opportunity trade
+      /* //evaluate the sudden dark opportunity trade
       if (SuddenDarkEnabled == 1 && UseTradingHours && IsOperatingHours)
       {
          EvaluateSuddenDark();
-      }
+      } */
+
+     EvaluateSuddenDark();
 
       //find the last highest and lowest
-      LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
-      LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1);
+      /* LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
+      LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1); */
+
+      LastHighest = GetLastHighestLowest("HIGHEST", 5, MODE_HIGH, LookBackCount, 1);
+      LastLowest =GetLastHighestLowest("LOWEST", 5, MODE_LOW, LookBackCount, 1);
 
       CandleComments = CandleComments + 
       "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
@@ -1080,6 +1085,15 @@ void InitializeEASettingsComments()
       case 7: 
       str = "PLOT 2"; 
       break; 
+   }
+
+   if (UseTradingHours)
+   {
+      SettingsComments = SettingsComments + "Valid Trading Hours : " + TradingHourStart + "-" +  + TradingHourEnd + "\n";
+   }
+   else
+   {
+      SettingsComments = SettingsComments + "Valid Trading Hours : ALL" + "\n";
    }
 
    SettingsComments = SettingsComments + "Exit Plot : " + str + "\n";
@@ -1717,15 +1731,16 @@ void SuddenDarkStrategy()
 
    //BUY SUDDEN DARK
    if (
-      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 6), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 6), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED")
+      && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 7), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+
       && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 8, "BR_RED", 1) + CandleColorHowLong(UpperTimeFrame + 10 + 8, "DK_GREEN", 1) >= 5
+
       && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_RED", 1) + CandleColorHowLong(UpperTimeFrame + 10 + 9, "DK_GREEN", 1) >= 5    
       )
    {
-      //SellStrategyActive = false;
-      //BuyStrategyActive = true;
-      //NeutralStrategyActive = false;
-
       SellSuddenDarkStrategy = false;
       BuySuddenDarkStrategy = true;
       NeutralSuddenDarkStrategy = false;
@@ -1741,14 +1756,15 @@ void SuddenDarkStrategy()
    //SELL SUDDEN DARK 
    if (
       (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 6), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 7), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+
       && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 8, "BR_GREEN", 1) + CandleColorHowLong(UpperTimeFrame + 10 + 8, "DK_RED", 1) >= 5
+
       && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_GREEN", 1) + CandleColorHowLong(UpperTimeFrame + 10 + 9, "DK_RED", 1) >= 5
       )
    {
-      //SellStrategyActive = false;
-      //BuyStrategyActive = true;
-      //NeutralStrategyActive = false;
-
       SellSuddenDarkStrategy = true;
       BuySuddenDarkStrategy = false;
       NeutralSuddenDarkStrategy = false;
@@ -2136,22 +2152,26 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
 string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
+   Print("Idx: " + Idx);
+   Print("OverallStrategy: " + OverallStrategy);
 
    //BUY STRATEGY, BRIGHT RED TO DARK RED
    if (
       OverallStrategy == "SDDN_DK_BUY_BR_RED_DK_RED"
 
-      //candle 1 less than or equal to candle 2
+      //candle 1 greater than or equal to candle 2
       && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
-      //candle 1 is positive
+      //candle 1 is negative
       && CombinedHistory[CndleStart][Idx] < 0 
       
-      //candle 2 greater than or equal to candle 3
+      //candle 2 less than or equal to candle 3
       && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is positive
+      //candle 2 is negative
       && CombinedHistory[CndleStart + 1][Idx] < 0 
+      //candle 3 is negative
+      && CombinedHistory[CndleStart + 3][Idx] < 0 
 
-      //candle 3 greater than or equal to candle 4
+      /* //candle 3 greater than or equal to candle 4
       && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
       //candle 1 is positive
       && CombinedHistory[CndleStart + 2][Idx] < 0 
@@ -2159,7 +2179,7 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
       //candle 3 greater than or equal to candle 4
       && NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 4][Idx] ,7) 
       //candle 1 is positive
-      && CombinedHistory[CndleStart + 3][Idx] < 0   
+      && CombinedHistory[CndleStart + 3][Idx] < 0  */
       )
    {
       OpportunityStrategy = OverallStrategy; 
@@ -2177,10 +2197,12 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
       
       //candle 2 greater than or equal to candle 3
       && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is positive
-      && CombinedHistory[CndleStart + 1][Idx] > 0 
+      //candle 2 is positive
+      && CombinedHistory[CndleStart + 1][Idx] > 0
+      //candle 3 is positive
+      && CombinedHistory[CndleStart + 2][Idx] > 0
 
-      //candle 3 greater than or equal to candle 4
+      /* ///candle 3 greater than or equal to candle 4
       && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
       //candle 1 is positive
       && CombinedHistory[CndleStart + 2][Idx] > 0 
@@ -2188,12 +2210,12 @@ string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCan
       //candle 3 greater than or equal to candle 4
       && NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 4][Idx] ,7) 
       //candle 1 is positive
-      && CombinedHistory[CndleStart + 3][Idx] > 0   
+      && CombinedHistory[CndleStart + 3][Idx] > 0   */ 
       )
-   {
+    {
       OpportunityStrategy = OverallStrategy; 
       result = "PLOT DECREASING BRIGHT GREEN TO DARK GREEN";
-   }
+   } 
 
    //NEUTRAL STRATEGY,
    if (
@@ -2293,9 +2315,11 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
             (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
             && Bid > EntryData[1][10]
             && CombinedHistory[CndleStart][Idx] > 0)
-
             ||
-            (Bid > EntryData[1][10] + 50 * Point)
+            (Bid > EntryData[1][10] + 20 * Point)
+            ||
+            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
+            && CombinedHistory[CndleStart][Idx] < 0)
          /* ||
             //exit if the macd turns to avoid losses
             //CombinedHistory[CndleStart][Idx - 1] > 0
@@ -2318,10 +2342,11 @@ string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLe
             (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
             && Ask < EntryData[0][10]
             && CombinedHistory[CndleStart][Idx] < 0)
-
             ||
-            (Ask < EntryData[0][10] - 50 * Point)
-
+            (Ask < EntryData[0][10] - 20 * Point)
+            ||
+            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
+            && CombinedHistory[CndleStart][Idx] >0)
          /* ||
             //exit if the macd turns to avoid losses
             //CombinedHistory[CndleStart][Idx - 1] > 0
@@ -2405,7 +2430,7 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
 
   if (command == "HIGHEST")
    {
-      returnedCandle = iHighest(Symbol(), Period(), MODE_HIGH, count, start);
+      returnedCandle = iHighest(Symbol(), Period(), MODE_CLOSE, count, start);
 
 
       ObjectDelete("objLastHighest");
@@ -2421,7 +2446,7 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
   else
    if (command == "LOWEST")
    {
-      returnedCandle = iLowest(Symbol(), Period(), MODE_LOW, count, start);
+      returnedCandle = iLowest(Symbol(), Period(), MODE_CLOSE, count, start);
       ObjectDelete("objLastLowest");
       ObjectCreate("objLastLowest", OBJ_HLINE, 0, Time[0], Low[returnedCandle]);
       ObjectSet("objLastLowest", OBJPROP_COLOR, clrFireBrick);
@@ -2438,6 +2463,67 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
    }
 
    return result;
+}
+
+int CandleColorHowLong(int Idx, string command, int CndleStart)
+{
+   int count = 0;
+   //Print("CandleColorHowLong");
+   //Print("command: " + command);
+
+   if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[count + 1][Idx] > CombinedHistory[count + 2][Idx]
+         && CombinedHistory[count + 1][Idx] > 0
+         && CombinedHistory[count + 2][Idx] > 0
+         );
+   }
+
+   if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[count + 1][Idx] < CombinedHistory[count + 2][Idx]
+         && CombinedHistory[count + 1][Idx] > 0
+         && CombinedHistory[count + 2][Idx] > 0
+         );
+   }
+
+   if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[count + 1][Idx] < CombinedHistory[count + 2][Idx]
+         && CombinedHistory[count + 1][Idx] < 0
+         && CombinedHistory[count + 2][Idx] < 0
+         );
+   }
+
+   if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[count + 1][Idx] > CombinedHistory[count + 2][Idx]
+         && CombinedHistory[count + 1][Idx] < 0
+         && CombinedHistory[count + 2][Idx] < 0
+         );
+   }
+
+   return count;
 }
 
 //===============================
