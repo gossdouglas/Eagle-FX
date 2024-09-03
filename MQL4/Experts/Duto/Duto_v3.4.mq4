@@ -2344,12 +2344,12 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
 
             //commented out the bid/ask restriction so I can exit early
             //if the macd goes bad
-            //&& Bid > EntryData[1][10]
-            //&& CombinedHistory[CndleStart][Idx] > 0
+            && Bid > EntryData[1][10]
+            && CombinedHistory[CndleStart][Idx] > 0
             )
-         /* ||
+         ||
             //exit if the macd turns to avoid losses
-            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0 */
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0
          )
       )
    {
@@ -2366,12 +2366,12 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
             (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
             //commented out the bid/ask restriction so I can exit early
             //if the macd goes bad
-            //&& Ask < EntryData[0][10]
-            //&& CombinedHistory[CndleStart][Idx] < 0
+            && Ask < EntryData[0][10]
+            && CombinedHistory[CndleStart][Idx] < 0
             )
-         /* ||
+         ||
             //exit if the macd turns to avoid losses
-            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0 */
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0
          )
       )
    {
