@@ -1730,10 +1730,10 @@ void SuddenDarkStrategy()
       (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
       && CandleColorHowLong(UpperTimeFrame + 10 + 8, "BR_RED", 3) >= 5
       
-      && (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
-      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_RED", 3) >= 5 
+      /* && (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_RED", 3) >= 5  */
 
-      && GetSniperData("CURRENT_VALUE", 0) < 50
+      //&& GetSniperData("CURRENT_VALUE", 0) < 50
       )
    {
       SellSuddenDarkStrategy = false;
@@ -1755,10 +1755,10 @@ void SuddenDarkStrategy()
       (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
       && CandleColorHowLong(UpperTimeFrame + 10 + 8, "BR_GREEN", 3) >= 5
 
-      && (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
-      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_GREEN", 3) >= 5
+      /* && (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_GREEN", 3) >= 5 */
 
-      && GetSniperData("CURRENT_VALUE", 0) > 50
+      //&& GetSniperData("CURRENT_VALUE", 0) > 50
       )
    {
       SellSuddenDarkStrategy = true;
@@ -2237,17 +2237,17 @@ string AskThePlotsSuddenDarkStrategy2 (int Idx, int CndleStart, int CmbndHstryCa
       OverallStrategy == "SDDN_DK_BUY_BR_RED_DK_RED"
 
       //candle 1 greater than candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) > NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
       //candle 1 is negative
       && CombinedHistory[CndleStart][Idx] < 0 
       
       //candle 2 greater than candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) > NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7)
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7)
       //candle 2 is positive
       && CombinedHistory[CndleStart + 1][Idx] < 0  
       
       //candle 3 less than candle 4
-      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) < NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
       //candle 3 is negative
       && CombinedHistory[CndleStart + 2][Idx] < 0
       //candle 4 is negative
@@ -2263,17 +2263,17 @@ string AskThePlotsSuddenDarkStrategy2 (int Idx, int CndleStart, int CmbndHstryCa
       OverallStrategy == "SDDN_DK_SELL_BR_GREEN_DK_GREEN"
 
       //candle 1 less than candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) < NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
       //candle 1 is positive
       && CombinedHistory[CndleStart][Idx] > 0
 
       //candle 2 less than candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) < NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7)
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7)
       //candle 2 is positive
       && CombinedHistory[CndleStart + 1][Idx] > 0  
       
       //candle 3 greater than to candle 4
-      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) > NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
       //candle 3 is positive
       && CombinedHistory[CndleStart + 2][Idx] > 0
       //candle 4 is positive
