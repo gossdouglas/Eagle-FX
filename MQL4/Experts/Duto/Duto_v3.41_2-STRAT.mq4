@@ -142,12 +142,12 @@ enum ENUM_EXIT_PLOT
    PLOT_2 = 7, // Plot 2
 };
 
-//selected allow opposite dark on plot 2
-enum ENUM_ALLOW_OPP_PL2
+/* //selected allow opposite dark on plot 2
+enum ENUM_ALLOW_DK_STRAT2
 {
-   ALLOW_OPP_PL2_YES = 1, // YES
-   ALLOW_OPP_PL2_NO = 0, // NO
-};
+   ALLOW_DK_STRAT2_TRUE = 1, // YES
+   ALLOW_DK_STRAT2_FALSE = 0, // NO
+}; */
 
 //upper left information section
 input string Comment_5 = "=========="; // Duto Specific Settings
@@ -156,7 +156,8 @@ input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 input double BarCountThreshold = 20;  // Bar Count Threshold
 input int LookBackCount = 20;
 input ENUM_EXIT_PLOT TradeExitPlot = 6; // Trade Exit Plot
-input ENUM_ALLOW_OPP_PL2 AllowOppDkPlot2 = 1; // Allow Entry if Plot 2 is Opp Dark
+// Allow Entry if the plots are dark but favorable
+input bool AllowStrat2Dark = true; //Allow Strat Dark
 
 //********************************************************************************************************
 //DUTO EA SPECIFIC VARIABLES
@@ -461,7 +462,7 @@ void EvaluateEntry()
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
    if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar 
-      && (!TotalOpenOrders > 0) && UseTradingHours && !IsOperatingHours)
+      && (!TotalOpenOrders > 0) && !(UseTradingHours && IsOperatingHours))
    { 
       // evaluate for a signal entry
       SignalEntry = ReturnSignalEntryToEvaluateEntry();
@@ -1071,6 +1072,7 @@ void InitializeEASettingsComments()
    }
 
    SettingsComments = SettingsComments + "Exit Plot : " + str + "\n";
+   SettingsComments = SettingsComments + "Allow Strat Dark : " + AllowStrat2Dark + "\n";
 
    Comment(SettingsComments);  
 }
@@ -2315,6 +2317,7 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
       OverallStrategy == "ST_BUY_2_STRATEGY"
 
       //HIGHER TIME FRAME
+
       //plot 1 candle 1 is positive
       && CombinedHistory[CndleStart][(UpperTimeFrame + 6)] > 0
       //plot 1 candle 1 is positive
@@ -2325,6 +2328,7 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
       && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
 
       //LOWER TIME FRAME
+      
       //plot 1 candle 1 is positive
       && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
       //plot 1 candle 1 is positive
