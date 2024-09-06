@@ -193,9 +193,13 @@ double FastMAHistoryBuffer[], SlowMAHistoryBuffer[], FiveFiftyMAHistoryBuffer[],
 double MacdHistoryBuffer[],  MacdPlot2HistoryBuffer[], MacdPlot3HistoryBuffer[], MacdPlot4HistoryBuffer[];
 //sniper indicator history array
 int SniperHistoryBuffer[];
+
 //a two dimensional array that stored indicator data from all time frames
 //each time frame has 10 measurements
+double CombinedHistoryPrev[1][52];
 double CombinedHistory[1][52];
+//track whether a macd is trending bright or dark
+double BrightTickCount, DarkTickCount;
 
 //LogIndicatorData() variables
 string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
@@ -430,8 +434,6 @@ void EvaluateEntry()
 
    if (TotalOpenOrders > 0)
       return; // If there are already open orders and you don't want to open more */
- 
-   
 
    // whether a new candle has been started is based on the chart that is shown
    if (IsNewCandle)
@@ -468,7 +470,7 @@ void EvaluateEntry()
       SignalEntry = ReturnSignalEntryToEvaluateEntry();
    }
 
-   GetCandleZeroIndicatorData();
+   //GetCandleZeroIndicatorData();
 
    //PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n";
 
@@ -583,6 +585,8 @@ void EvaluateExit()
       LogIndicatorData();
       StartupFlag = true;
    }
+   
+   GetCandleZeroIndicatorData();
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
    if (StartupFlag == true)
@@ -1116,6 +1120,9 @@ ENUM_SIGNAL_EXIT ReturnSignalExitToEvaluateExit()
 
 void GetCandleZeroIndicatorData()
 {
+   //copy the index zero of the CombinedHistory to CombinedHistoryPrev
+   //it is used to compare the last tick to the current tick
+   ArrayCopy(CombinedHistoryPrev, CombinedHistory, 0, 0, WHOLE_ARRAY);
 
    //CombinedHistory[0][X] = NormalizeDouble(iCustom(Symbol(),60, duto_chart_indicators, X, 0), 5);
 
@@ -1235,15 +1242,9 @@ void GetCandleZeroIndicatorData()
    //sniper
    CombinedHistory[0][42] = iCustom(Symbol(),1, duto_sniper, 0, 0);
 
-   PipComments = PipComments + "M5 MACD Candle 0: " + CombinedHistory[0][UpperTimeFrame + 10 + 6] + "\n";
-   PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n";
-
-
-   //PipComments = PipComments + "M5 MACD Candle 0: " + CombinedHistory[0][26] + "\n";
-   //PipComments = PipComments + "> 0: " + CombinedHistory[0][26] > 0 + "\n";
-
-   /* PipComments = PipComments + "M5 MACD Candle 0 > 0?: " 
-   + CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0 + "\n"; */
+   /* PipComments = PipComments + "M5 MACD Candle 0 Prev: " + CombinedHistoryPrev[0][UpperTimeFrame + 10 + 6] + "\n";
+   PipComments = PipComments + "M5 MACD Candle 0 Curr: " + CombinedHistory[0][UpperTimeFrame + 10 + 6] + "\n";
+   PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n"; */
 }
 
 void LogIndicatorData()
