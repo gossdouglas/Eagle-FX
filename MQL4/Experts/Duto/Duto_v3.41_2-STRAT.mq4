@@ -481,10 +481,13 @@ void EvaluateEntry()
 // Execute entry if there is an entry signal
 void ExecuteEntry()
 {
-   // If there is no entry signal no point to continue
+   //Print("BuyTradePending: " + BuyTradePending);
+   //Print("> .9: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > .9));
+
+   /* // If there is no entry signal no point to continue
    if (SignalEntry == SIGNAL_ENTRY_NEUTRAL)
    //if (TradePending != true)
-      return;
+      return; */
 
    int Operation;
    double OpenPrice = 0;
@@ -492,6 +495,7 @@ void ExecuteEntry()
    double TakeProfitPrice = 0;
    // If there is a Buy entry signal
    if (SignalEntry == SIGNAL_ENTRY_BUY)
+   //if (BuyTradePending == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > .9))
    {
       RefreshRates();     // Get latest rates
       Operation = OP_BUY; // Set the operation to BUY
@@ -1740,9 +1744,9 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
          && BuySafetyTrade2Strategy == true
       )
    {
+      //BuyTradePending = true;
       BuyTradeActive = true;
 
-      //Print("ENTER A BUY, BRIGHT RED TO DARK RED. " +
       Print("ENTER A SAFETY TRADE BUY." +
       "SellTradeActive: " + SellTradeActive + 
       " BuyTradeActive: " + BuyTradeActive + 
@@ -2300,18 +2304,6 @@ ENUM_SIGNAL_EXIT DutoWind_Exit()
 string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
-   //Print("AskThePlots2Strategy Idx: " + Idx);
-   //Print("AskThePlots2Strategy Idx: " + (UpperTimeFrame + 6));
-
-   /* Print("CombinedHistory[CndleStart][26]: " + CombinedHistory[CndleStart][26]);
-   Print("CombinedHistory[CndleStart][27]: " + CombinedHistory[CndleStart][27]);
-   Print("CombinedHistory[CndleStart][28]: " + CombinedHistory[CndleStart][28]);
-   Print("CombinedHistory[CndleStart][29]: " + CombinedHistory[CndleStart][29]); */
-
-   /* Print("CombinedHistory[CndleStart][36]: " + CombinedHistory[CndleStart][36]);
-   Print("CombinedHistory[CndleStart][37]: " + CombinedHistory[CndleStart][37]);
-   Print("CombinedHistory[CndleStart][38]: " + CombinedHistory[CndleStart][38]);
-   Print("CombinedHistory[CndleStart][39]: " + CombinedHistory[CndleStart][39]); */
 
    //SAFETY TRADE BUY 2 STRATEGY, ALL DARK GREEN OR BRIGHT GREEN
    if (
@@ -2320,7 +2312,13 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
       //HIGHER TIME FRAME
 
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 6)] > 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 6)] > 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 6, "DK_RED", 1) >= 5)
+      )
       //plot 1 candle 1 is positive
       && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
       //plot 1 candle 1 is positive
@@ -2331,11 +2329,18 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
       //LOWER TIME FRAME
       
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 10 + 7, "DK_RED", 1) >= 5)
+      )
+
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0
       )
    {
       CurrentStrategy = OverallStrategy; 
@@ -3290,6 +3295,74 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
    return result;
 }
 
+int CandleColorHowLong(int Idx, string command, int CndleStart)
+{
+   int count = 0;
+   //Print("CandleColorHowLong");
+   //Print("command: " + command);
+
+   if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] > 0
+         && CombinedHistory[CndleStart + count + 2][Idx] > 0
+         );
+
+         Print("BR_GREEN Count: " + count);
+   }
+
+   if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] > 0
+         && CombinedHistory[CndleStart + count + 2][Idx] > 0
+         );
+
+         //Print("Count: " + count);
+   }
+
+   if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] < 0
+         && CombinedHistory[CndleStart + count + 2][Idx] < 0
+         );
+
+         Print("BR_RED Count: " + count);
+   }
+
+   if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] < 0
+         && CombinedHistory[CndleStart + count + 2][Idx] < 0
+         );
+
+         Print("DK_RED Count: " + count);
+   }
+
+   return count;
+}
 //DutoWind
 
 //END DUTO STRATEGY, ENTRY AND EXIT
