@@ -1,17 +1,3 @@
-/*
-
-This EA is derived from the MT4 Robot Template and it is for demonstration and education purpose
-
-ENTRY SIGNAL: Fast MA crosses Slow MA
-
-EXIT SIGNAL: Fast MA Crosses Slow MA
-
-STOP LOSS: Set to the parabolic sar (PSAR)
-
-TRAILING STOP: Stop following the PSAR
-
-*/
-
 //-PROPERTIES-//
 // Properties help the software look better when you load it in MT4
 // Provide more information and details
@@ -505,7 +491,7 @@ void ExecuteEntry()
    double TakeProfitPrice = 0;
    // If there is a Buy entry signal
    //if (SignalEntry == SIGNAL_ENTRY_BUY)
-   if (BuyTradePending == true && (TradePendingTimeoutCount <= 0) && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP))
+   if (BuyTradePending == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP))
    {
       RefreshRates();     // Get latest rates
       Operation = OP_BUY; // Set the operation to BUY
@@ -545,8 +531,8 @@ void ExecuteEntry()
       SendOrder(Operation, Symbol(), OpenPrice, StopLossPrice, TakeProfitPrice);
    }
    
-   if (SignalEntry == SIGNAL_ENTRY_SELL)
-   //if (SellTradePending == true && Bid >= CombinedHistory[0][32])
+   //if (SignalEntry == SIGNAL_ENTRY_SELL)
+   if (SellTradePending == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] < TradePendingMacdSP))
    {
       RefreshRates();      // Get latest rates
 
@@ -1780,9 +1766,9 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
          && SellSafetyTrade2Strategy == true
       )
    {
-      SellTradeActive = true;
+      SellTradePending = true;
+      //SellTradeActive = true;
 
-      //Print("ENTER A BUY, BRIGHT RED TO DARK RED. " +
       Print("ENTER A SAFETY TRADE SELL." +
       "SellTradeActive: " + SellTradeActive + 
       " BuyTradeActive: " + BuyTradeActive + 
