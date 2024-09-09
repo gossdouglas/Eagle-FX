@@ -1,3 +1,17 @@
+/*
+
+This EA is derived from the MT4 Robot Template and it is for demonstration and education purpose
+
+ENTRY SIGNAL: Fast MA crosses Slow MA
+
+EXIT SIGNAL: Fast MA Crosses Slow MA
+
+STOP LOSS: Set to the parabolic sar (PSAR)
+
+TRAILING STOP: Stop following the PSAR
+
+*/
+
 //-PROPERTIES-//
 // Properties help the software look better when you load it in MT4
 // Provide more information and details
@@ -129,11 +143,18 @@ enum ENUM_EXIT_PLOT
 };
 
 /* //selected allow opposite dark on plot 2
-enum ENUM_ALLOW_DK_STRAT2
+enum ENUM_ALLOW_OPP_PL2
 {
-   ALLOW_DK_STRAT2_TRUE = 1, // YES
-   ALLOW_DK_STRAT2_FALSE = 0, // NO
+   ALLOW_OPP_PL2_YES = 1, // YES
+   ALLOW_OPP_PL2_NO = 0, // NO
 }; */
+
+//selected allow opposite dark on plot 2
+enum ENUM_ALLOW_OPP_SUDDEN_DARK
+{
+   ALLOW_OPP_SDDN_DARK_YES = 1, // YES
+   ALLOW_OPP_SDDN_DARK_NO = 0, // NO
+};
 
 //upper left information section
 input string Comment_5 = "=========="; // Duto Specific Settings
@@ -142,10 +163,8 @@ input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 input double BarCountThreshold = 20;  // Bar Count Threshold
 input int LookBackCount = 20;
 input ENUM_EXIT_PLOT TradeExitPlot = 6; // Trade Exit Plot
-// Allow Entry if the plots are dark but favorable
-input bool AllowStrat2Dark = true; //Allow Strat Dark
-input int TradePendingTimeout = 5; //Trade Pending Timeout
-input double TradePendingMacdSP = .9;
+//input ENUM_ALLOW_OPP_PL2 AllowOppDkPlot2 = 1; // Allow Entry if Plot 2 is Opp Dark
+input ENUM_ALLOW_OPP_SUDDEN_DARK SuddenDarkEnabled = 1; // Sudden Dark Opp Trade
 
 //********************************************************************************************************
 //DUTO EA SPECIFIC VARIABLES
@@ -170,27 +189,20 @@ bool SellDkGrBrRdStrategyActive, BuyBrRdDkRdStrategyActive;
 bool SellDkRdBrRdStrategyActive, BuyDkRdBrGrStrategyActive;
 
 bool SellTradeActive, BuyTradeActive, TradeActive;
-bool SellTradesValid, BuyTradesValid, TradePending;
-int TradePendingTimeoutCount;
-
+bool SellTradePending, BuyTradesPending, TradePending;
 
 bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strategy;
 
 //HISTORY ARRAYS
-
 //chart indicator history arrays
 double FastMAHistoryBuffer[], SlowMAHistoryBuffer[], FiveFiftyMAHistoryBuffer[], DeltaCollapsedPosHistoryBuffer[], DeltaCollapsedNegHistoryBuffer[];
 //MACD indicator history arrays
 double MacdHistoryBuffer[],  MacdPlot2HistoryBuffer[], MacdPlot3HistoryBuffer[], MacdPlot4HistoryBuffer[];
 //sniper indicator history array
 int SniperHistoryBuffer[];
-
 //a two dimensional array that stored indicator data from all time frames
 //each time frame has 10 measurements
-double CombinedHistoryPrev[1][52];
 double CombinedHistory[1][52];
-//track whether a macd is trending bright or dark
-double BrightTickCount, DarkTickCount;
 
 //LogIndicatorData() variables
 string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
@@ -205,6 +217,11 @@ int periodArray[] = {60, 15, 5};
 //SNIPER VARIABLES
 double LastHighest, LastLowest;
 bool SniperCockedHigh, SniperCockedLow, SniperCockedNeutral;
+
+//OPPORTUNITY TRADE SUDDEN DARK VARIABLES
+string OpportunityStrategy;
+bool SellSuddenDarkStrategy, BuySuddenDarkStrategy, NeutralSuddenDarkStrategy;
+bool SuddenDarkSellActive, SuddenDarkBuyActive;
 
 
 //********************************************************************************************************
@@ -437,21 +454,24 @@ void EvaluateEntry()
       //log data and build the CombinedHistory array
       LogIndicatorData();
       //evaluate for a strategy
-      DutoWind_SelectedStrategy();
+      //DutoWind_SelectedStrategy();
+
       //evaluate the sniper
       //EvaluateSniper();
 
-      //find the last highest and lowest
-      LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
-      LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1);
-
-      if (BuyTradesValid || SellTradesValid)
+      /* //evaluate the sudden dark opportunity trade
+      if (SuddenDarkEnabled == 1 && UseTradingHours && IsOperatingHours)
       {
-         TradePendingTimeoutCount--;
-      }
+         EvaluateSuddenDark();
+      } */
+
+     EvaluateSuddenDark();
+
+      /* LastHighest = GetLastHighestLowest("HIGHEST", 5, MODE_HIGH, LookBackCount, 1);
+      LastLowest =GetLastHighestLowest("LOWEST", 5, MODE_LOW, LookBackCount, 1);
 
       CandleComments = CandleComments + 
-      "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
+      "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n"; */
 
       StartupFlag = true;
 
@@ -459,40 +479,29 @@ void EvaluateEntry()
    }
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
-   if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar 
-      && (!TotalOpenOrders > 0) && !(UseTradingHours && IsOperatingHours))
+   if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar && (!TotalOpenOrders > 0))
    { 
       // evaluate for a signal entry
       SignalEntry = ReturnSignalEntryToEvaluateEntry();
    }
 
-   //GetCandleZeroIndicatorData();
-
-   //PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n";
-
    Comment(SettingsComments + CandleComments + PipComments); 
-   //Comment("MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n");
 }
 
 // Execute entry if there is an entry signal
 void ExecuteEntry()
 {
-   //Print("BuyTradePending: " + BuyTradePending);
-   //Print("> .9: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > .9));
-
-   /* // If there is no entry signal no point to continue
+   // If there is no entry signal no point to continue
    if (SignalEntry == SIGNAL_ENTRY_NEUTRAL)
    //if (TradePending != true)
-      return; */
+      return;
 
    int Operation;
    double OpenPrice = 0;
    double StopLossPrice = 0;
    double TakeProfitPrice = 0;
    // If there is a Buy entry signal
-   //if (SignalEntry == SIGNAL_ENTRY_BUY)
-   //if (BuyTradePending == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP))
-   if (BuyTradesValid == true && !TotalOpenOrders && EntryConditionsOk("BUY", 1))
+   if (SignalEntry == SIGNAL_ENTRY_BUY)
    {
       RefreshRates();     // Get latest rates
       Operation = OP_BUY; // Set the operation to BUY
@@ -523,17 +532,12 @@ void ExecuteEntry()
       OpenPrice = NormalizeDouble(OpenPrice, Digits);
       StopLossPrice = NormalizeDouble(StopLossPrice, Digits);
       TakeProfitPrice = NormalizeDouble(TakeProfitPrice, Digits);
-
-      //TradePending = false;
-      //BuyTradesValid = false;
-      BuyTradeActive = true;
-
       // Submit the order
       SendOrder(Operation, Symbol(), OpenPrice, StopLossPrice, TakeProfitPrice);
    }
    
-   //if (SignalEntry == SIGNAL_ENTRY_SELL)
-   if (SellTradesValid == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] < TradePendingMacdSP))
+   if (SignalEntry == SIGNAL_ENTRY_SELL)
+   //if (SellTradePending == true && Bid >= CombinedHistory[0][32])
    {
       RefreshRates();      // Get latest rates
 
@@ -568,12 +572,13 @@ void ExecuteEntry()
       StopLossPrice = NormalizeDouble(StopLossPrice, Digits);
       TakeProfitPrice = NormalizeDouble(TakeProfitPrice, Digits);
 
-      TradePending = false;
-      SellTradesValid = false;
-      SellTradeActive = true;
-      
+      Print("Bid: " + Bid + ", CombinedHistory[1][32]: " + CombinedHistory[1][32]);
       // Submit the order
       SendOrder(Operation, Symbol(), OpenPrice, StopLossPrice, TakeProfitPrice);
+
+      SellTradeActive = true;
+      TradePending = false;
+      SellTradePending = false;
    }
 }
 
@@ -590,8 +595,6 @@ void EvaluateExit()
       LogIndicatorData();
       StartupFlag = true;
    }
-   
-   GetCandleZeroIndicatorData();
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
    if (StartupFlag == true)
@@ -1080,8 +1083,16 @@ void InitializeEASettingsComments()
       break; 
    }
 
+   if (UseTradingHours)
+   {
+      SettingsComments = SettingsComments + "Valid Trading Hours : " + TradingHourStart + "-" +  + TradingHourEnd + "\n";
+   }
+   else
+   {
+      SettingsComments = SettingsComments + "Valid Trading Hours : ALL" + "\n";
+   }
+
    SettingsComments = SettingsComments + "Exit Plot : " + str + "\n";
-   SettingsComments = SettingsComments + "Allow Strat Dark : " + AllowStrat2Dark + "\n";
 
    Comment(SettingsComments);  
 }
@@ -1104,8 +1115,8 @@ ENUM_SIGNAL_ENTRY ReturnSignalEntryToEvaluateEntry()
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
    //check for an entry
-   //SignalEntry = DutoWind_Entry();
-   SignalEntry = DutoWind_2StrategyEntry();
+   //SignalEntry = DutoWind_2StrategyEntry();
+   SignalEntry = SuddenDarkStrategyEntry();
 
    return SignalEntry;
 }
@@ -1117,139 +1128,10 @@ ENUM_SIGNAL_EXIT ReturnSignalExitToEvaluateExit()
    SignalExit = SIGNAL_EXIT_NEUTRAL;
 
    //check for an exit
-   //SignalExit = DutoWind_Exit();
-   SignalExit = DutoWind_2StrategyExit();
+   //SignalExit = DutoWind_2StrategyExit();
+   SignalExit = SuddenDarkStrategyExit();
 
    return SignalExit;
-}
-
-void GetCandleZeroIndicatorData()
-{
-   //copy the index zero of the CombinedHistory to CombinedHistoryPrev
-   //it is used to compare the last tick to the current tick
-   ArrayCopy(CombinedHistoryPrev, CombinedHistory, 0, 0, WHOLE_ARRAY);
-
-   //CombinedHistory[0][X] = NormalizeDouble(iCustom(Symbol(),60, duto_chart_indicators, X, 0), 5);
-
-   //60
-
-   //fast moving average
-   CombinedHistory[0][2] = NormalizeDouble(iCustom(Symbol(),60, duto_chart_indicators, 0, 0), 5);
-   //slow moving average
-   CombinedHistory[0][3] = NormalizeDouble(iCustom(Symbol(),60, duto_chart_indicators, 1, 0), 5);
-   //550 moving average
-   CombinedHistory[0][4] = NormalizeDouble(iCustom(Symbol(),60, duto_chart_indicators, 4, 0), 5);
-   
-   //delta collapsed
-   if (iCustom(Symbol(),60, duto_chart_indicators, 5, 0) == 2147483647) 
-   {
-      CombinedHistory[0][5] = -1;//delta collapsed negative
-   }
-   else {
-      CombinedHistory[0][5] = 1;//delta collapsed positive
-   }
-
-   //macd histogram
-   CombinedHistory[0][6] = iCustom(Symbol(),60, indicatorName, 0, 0);
-   //plot 2
-   CombinedHistory[0][7] = iCustom(Symbol(),60, indicatorName, 1, 0);
-   //plot 3
-   CombinedHistory[0][8] = iCustom(Symbol(),60, indicatorName, 2, 0);
-   //plot 4
-   CombinedHistory[0][9] = iCustom(Symbol(),60, indicatorName, 3, 0);
-   //sniper
-   CombinedHistory[0][40] = iCustom(Symbol(),60, duto_sniper, 0, 0);
-
-   //15
-   
-   //fast moving average
-   CombinedHistory[0][12] = NormalizeDouble(iCustom(Symbol(),15, duto_chart_indicators, 0, 0), 5);
-   //slow moving average
-   CombinedHistory[0][13] = NormalizeDouble(iCustom(Symbol(),15, duto_chart_indicators, 1, 0), 5);
-   //550 moving average
-   CombinedHistory[0][14] = NormalizeDouble(iCustom(Symbol(),15, duto_chart_indicators, 4, 0), 5);
-   
-   //delta collapsed
-   if (iCustom(Symbol(),15, duto_chart_indicators, 5, 0) == 2147483647) 
-   {
-      CombinedHistory[0][15] = -1;//delta collapsed negative
-   }
-   else {
-      CombinedHistory[0][15] = 1;//delta collapsed positive
-   }
-
-   //macd histogram
-   CombinedHistory[0][16] = iCustom(Symbol(),15, indicatorName, 0, 0);
-   //plot 2
-   CombinedHistory[0][17] = iCustom(Symbol(),15, indicatorName, 1, 0);
-   //plot 3
-   CombinedHistory[0][18] = iCustom(Symbol(),15, indicatorName, 2, 0);
-   //plot 4
-   CombinedHistory[0][19] = iCustom(Symbol(),15, indicatorName, 3, 0);
-   //sniper
-   CombinedHistory[0][41] = iCustom(Symbol(),15, duto_sniper, 0, 0);
-
-   //5
-   
-   //fast moving average
-   CombinedHistory[0][22] = NormalizeDouble(iCustom(Symbol(),5, duto_chart_indicators, 0, 0), 5);
-   //slow moving average
-   CombinedHistory[0][23] = NormalizeDouble(iCustom(Symbol(),5, duto_chart_indicators, 1, 0), 5);
-   //550 moving average
-   CombinedHistory[0][24] = NormalizeDouble(iCustom(Symbol(),5, duto_chart_indicators, 4, 0), 5);
-   
-   //delta collapsed
-   if (iCustom(Symbol(),5, duto_chart_indicators, 5, 0) == 2147483647) 
-   {
-      CombinedHistory[0][25] = -1;//delta collapsed negative
-   }
-   else {
-      CombinedHistory[0][25] = 1;//delta collapsed positive
-   }
-
-   //macd histogram
-   CombinedHistory[0][26] = iCustom(Symbol(),5, indicatorName, 0, 0);
-   //plot 2
-   CombinedHistory[0][27] = iCustom(Symbol(),5, indicatorName, 1, 0);
-   //plot 3
-   CombinedHistory[0][28] = iCustom(Symbol(),5, indicatorName, 2, 0);
-   //plot 4
-   CombinedHistory[0][29] = iCustom(Symbol(),5, indicatorName, 3, 0);
-   //sniper
-   CombinedHistory[0][42] = iCustom(Symbol(),5, duto_sniper, 0, 0);
-
-   //1
-   
-   //fast moving average
-   CombinedHistory[0][32] = NormalizeDouble(iCustom(Symbol(),1, duto_chart_indicators, 0, 0), 5);
-   //slow moving average
-   CombinedHistory[0][33] = NormalizeDouble(iCustom(Symbol(),1, duto_chart_indicators, 1, 0), 5);
-   //550 moving average
-   CombinedHistory[0][34] = NormalizeDouble(iCustom(Symbol(),1, duto_chart_indicators, 4, 0), 5);
-   
-   //delta collapsed
-   if (iCustom(Symbol(),1, duto_chart_indicators, 1, 0) == 2147483647) 
-   {
-      CombinedHistory[0][35] = -1;//delta collapsed negative
-   }
-   else {
-      CombinedHistory[0][35] = 1;//delta collapsed positive
-   }
-
-   //macd histogram
-   CombinedHistory[0][36] = iCustom(Symbol(),1, indicatorName, 0, 0);
-   //plot 2
-   CombinedHistory[0][37] = iCustom(Symbol(),1, indicatorName, 1, 0);
-   //plot 3
-   CombinedHistory[0][38] = iCustom(Symbol(),1, indicatorName, 2, 0);
-   //plot 4
-   CombinedHistory[0][39] = iCustom(Symbol(),1, indicatorName, 3, 0);
-   //sniper
-   CombinedHistory[0][42] = iCustom(Symbol(),1, duto_sniper, 0, 0);
-
-   /* PipComments = PipComments + "M5 MACD Candle 0 Prev: " + CombinedHistoryPrev[0][UpperTimeFrame + 10 + 6] + "\n";
-   PipComments = PipComments + "M5 MACD Candle 0 Curr: " + CombinedHistory[0][UpperTimeFrame + 10 + 6] + "\n";
-   PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n"; */
 }
 
 void LogIndicatorData()
@@ -1587,38 +1469,6 @@ void LogIndicatorData()
    FileClose(fileHandleIndicatorData); 
 }
 
-bool EntryConditionsOk (string command, int CndleStart)
-{
-   bool result = false;
-
-   if (command == "BUY"
-         && Ask < CombinedHistory[0][UpperTimeFrame + 10 + 2]
-         //delta c positive
-         && (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 5] == 1)
-
-         && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP)
-         //&& (CombinedHistory[0][UpperTimeFrame + 10 + 6] > CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6]) 
-
-         && 
-         (CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
-         || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 7, "DK_RED", 1) >= 1)
-         ) 
-         && 
-         (CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
-         || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 8, "DK_RED", 1) >= 1)
-         ) 
-         && 
-         (CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
-         || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 9, "DK_RED", 1) >= 1)
-         ) 
-      )    
-   {
-      result = true;
-   }
-
-   return result;
-}
-
 //********************************************************************************************************
 
 //BEGIN DUTO STRATEGY, ENTRY AND EXIT
@@ -1684,11 +1534,13 @@ void EvaluateSniper()
    CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
 }
 
+void EvaluateSuddenDark()
+{
+   SuddenDarkStrategy();
+}
+
 void DutoWind_2Strategy()
 {
-   //BuySafetyTrade2Strategy = false;
-   //SellSafetyTrade2Strategy = false;
-   //NeutralSafetyTrade2Strategy = false;
    CurrentStrategy = "";
 
    //BUY 2 STRATEGY SAFETY TRADE
@@ -1738,9 +1590,6 @@ void DutoWind_2Strategy()
       (AskThePlots2Strategy((UpperTimeFrame + 6), 1, 1, "ST_NEUTRAL_2_STRATEGY") == "SAFETY TRADE NEUTRAL 2 STRATEGY") 
       )
    {
-      BuyTradesValid = false;
-      SellTradesValid = false;
-      
       SellStrategyActive = false;
       BuyStrategyActive = false;
       NeutralStrategyActive = true;
@@ -1779,9 +1628,9 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
          && BuySafetyTrade2Strategy == true
       )
    {
-      BuyTradesValid = true;
-      //BuyTradeActive = true;
+      BuyTradeActive = true;
 
+      //Print("ENTER A BUY, BRIGHT RED TO DARK RED. " +
       Print("ENTER A SAFETY TRADE BUY." +
       "SellTradeActive: " + SellTradeActive + 
       " BuyTradeActive: " + BuyTradeActive + 
@@ -1802,9 +1651,9 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
          && SellSafetyTrade2Strategy == true
       )
    {
-      SellTradesValid = true;
-      //SellTradeActive = true;
+      SellTradeActive = true;
 
+      //Print("ENTER A BUY, BRIGHT RED TO DARK RED. " +
       Print("ENTER A SAFETY TRADE SELL." +
       "SellTradeActive: " + SellTradeActive + 
       " BuyTradeActive: " + BuyTradeActive + 
@@ -1871,6 +1720,911 @@ ENUM_SIGNAL_EXIT DutoWind_2StrategyExit()
 
    return SignalExit;
 }
+
+void SuddenDarkStrategy()
+{
+   OpportunityStrategy = "";
+
+   //BUY SUDDEN DARK
+   if (
+      (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      && CandleColorHowLong(UpperTimeFrame + 10 + 8, "BR_RED", 3) >= 5
+      
+      && (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED") 
+      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_RED", 3) >= 5 
+
+      && GetSniperData("CURRENT_VALUE", 0) < 50
+      )
+   {
+      SellSuddenDarkStrategy = false;
+      BuySuddenDarkStrategy = true;
+      NeutralSuddenDarkStrategy = false;
+
+      //close all sell trades
+      //CloseAll(OP_SELL);
+
+      Print("GetSniperData(): " + GetSniperData("CURRENT_VALUE", 0));
+
+      Print("SUDDEN DARK BUY STRATEGY IN EFFECT. SellSuddenDarkStrategy: " + SellSuddenDarkStrategy + 
+      " BuySuddenDarkStrategy: " + BuySuddenDarkStrategy 
+      + " NeutralSuddenDarkStrategy: " + NeutralSuddenDarkStrategy);   
+   }
+
+   //SELL SUDDEN DARK 
+   if (
+      (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      && CandleColorHowLong(UpperTimeFrame + 10 + 8, "BR_GREEN", 3) >= 5
+
+      && (AskThePlotsSuddenDarkStrategy2((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_SELL_BR_GREEN_DK_GREEN") == "PLOT DECREASING BRIGHT GREEN TO DARK GREEN") 
+      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "BR_GREEN", 3) >= 5
+
+      && GetSniperData("CURRENT_VALUE", 0) > 50
+      )
+   {
+      SellSuddenDarkStrategy = true;
+      BuySuddenDarkStrategy = false;
+      NeutralSuddenDarkStrategy = false;
+
+      //close all sell trades
+      //CloseAll(OP_SELL);
+
+      Print("GetSniperData(): " + GetSniperData("CURRENT_VALUE", 0));
+
+      Print("SUDDEN DARK SELL STRATEGY IN EFFECT. SellSuddenDarkStrategy: " + SellSuddenDarkStrategy + 
+      " BuySuddenDarkStrategy: " + BuySuddenDarkStrategy 
+      + " NeutralSuddenDarkStrategy: " + NeutralSuddenDarkStrategy);   
+   }
+
+   //NEUTRAL SUDDEN DARK 
+   if (
+      (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 8), 1, 1, "SDDN_DK_NEUTRAL_STRATEGY") == "SUDDEN DARK NEUTRAL STRATEGY") 
+      && (AskThePlotsSuddenDarkStrategy((UpperTimeFrame + 10 + 9), 1, 1, "SDDN_DK_NEUTRAL_STRATEGY") == "SUDDEN DARK NEUTRAL STRATEGY") 
+      )
+   {
+      //SellStrategyActive = false;
+      //BuyStrategyActive = true;
+      //NeutralStrategyActive = false;
+
+      SellSuddenDarkStrategy = false;
+      BuySuddenDarkStrategy = false;
+      NeutralSuddenDarkStrategy = true;
+
+      //close all sell trades
+      //CloseAll(OP_SELL);
+
+      /* Print("SUDDEN DARK NEUTRAL STRATEGY IN EFFECT. SellSuddenDarkStrategy: " + SellSuddenDarkStrategy + 
+      " BuySuddenDarkStrategy: " + BuySuddenDarkStrategy 
+      + " NeutralSuddenDarkStrategy: " + NeutralSuddenDarkStrategy);  */
+   }
+}
+
+ENUM_SIGNAL_ENTRY SuddenDarkStrategyEntry()
+{
+   //ENTRY LOGIC
+
+   //don't allow new trades to be made outside of the selected trading hours
+   if (UseTradingHours && !IsOperatingHours)
+   {
+      SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+      return SignalEntry; // If you are using trading hours and it's not a trading hour don't give an entry signal
+   } 
+
+   //SUDDEN DARK BUY ENTRY
+   if (    
+         (AskThePlotsSuddenDarkEntry(UpperTimeFrame + 10 + 6, 1, 1, "BUY_SDDN_DARK_ENTRY") == "ENTER A SDDN DARK TRADE BUY")
+         //&& BuyStrategyActive == true 
+         //&& BuyTradeActive == false
+         //&& BuySafetyTrade2Strategy == true
+         && BuySuddenDarkStrategy == true
+      )
+   {
+      //SellTradeActive = true;
+      SuddenDarkBuyActive = true;
+      LastHighest = GetLastHighestLowest("HIGHEST", 5, MODE_HIGH, LookBackCount, 1);
+
+      Print("ENTER A SUDDEN DARK TRADE BUY." +
+      "SuddenDarkSellActive: " + SuddenDarkSellActive + 
+      " SuddenDarkBuyActive: " + SuddenDarkBuyActive + 
+      " BuySuddenDarkStrategy: " + BuySuddenDarkStrategy);
+
+      EntryData[1][10] = Ask;
+      SignalEntry = SIGNAL_ENTRY_BUY;
+   }
+
+   //SUDDEN DARK SELL ENTRY
+   if (    
+         (AskThePlotsSuddenDarkEntry(UpperTimeFrame + 10 + 6, 1, 1, "SELL_SDDN_DARK_ENTRY") == "ENTER A SDDN DARK TRADE SELL")
+         //&& BuyStrategyActive == true 
+         //&& BuyTradeActive == false
+         //&& BuySafetyTrade2Strategy == true
+         && SellSuddenDarkStrategy == true
+      )
+   {
+      //SellTradeActive = true;
+      SuddenDarkSellActive = true;
+      LastLowest =GetLastHighestLowest("LOWEST", 5, MODE_LOW, LookBackCount, 1);
+
+      Print("ENTER A SUDDEN DARK TRADE SELL." +
+      "SuddenDarkSellActive: " + SuddenDarkSellActive + 
+      " SuddenDarkBuyActive: " + SuddenDarkBuyActive + 
+      " SellSuddenDarkStrategy: " + SellSuddenDarkStrategy);
+
+      EntryData[0][10] = Bid;
+      SignalEntry = SIGNAL_ENTRY_SELL;
+   }
+
+   //SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+
+   return SignalEntry;
+}
+
+ENUM_SIGNAL_EXIT SuddenDarkStrategyExit()
+{ 
+   //EXIT LOGIC
+
+   //ACTIVE
+   //SELL EXIT
+   if (
+      AskThePlotsSuddenDarkExit(UpperTimeFrame + 10 + 6, 1, 1, "BUY_SDDN_DARK_EXIT") == "EXIT A SDDN DARK TRADE BUY"
+      && SuddenDarkBuyActive == true
+      //&& SellStrategyActive == true 
+      //&& SellTradeActive == true
+
+      //&& SellSafetyTrade2Strategy == true
+      //&& Bid > EntryData[1][10] //current price is greater than the price it was entered at
+      )
+   {
+      SuddenDarkBuyActive = false;
+      //BuyBrRdDkRdStrategyActive = false;
+
+      Print("EXIT A SUDDEN DARK TRADE BUY." +
+      "SuddenDarkSellActive: " + SuddenDarkSellActive + 
+      " SuddenDarkBuyActive: " + SuddenDarkBuyActive + 
+      " BuyDarkStrategy: " + BuySuddenDarkStrategy);
+      
+      SignalExit = SIGNAL_EXIT_BUY;
+   }
+
+   //ACTIVE
+   //SELL EXIT
+   if (
+      AskThePlotsSuddenDarkExit(UpperTimeFrame + 10 + 6, 1, 1, "SELL_SDDN_DARK_EXIT") == "EXIT A SDDN DARK TRADE SELL"
+      && SuddenDarkSellActive == true
+      //&& SellStrategyActive == true 
+      //&& SellTradeActive == true
+
+      //&& SellSafetyTrade2Strategy == true
+      //&& Bid > EntryData[1][10] //current price is greater than the price it was entered at
+      )
+   {
+      SuddenDarkSellActive = false;
+      //BuyBrRdDkRdStrategyActive = false;
+
+      Print("EXIT A SUDDEN DARK TRADE SELL." +
+      "SuddenDarkSellActive: " + SuddenDarkSellActive + 
+      " SuddenDarkBuyActive: " + SuddenDarkBuyActive + 
+      " SellSuddenDarkStrategy: " + SellSuddenDarkStrategy);
+      
+      SignalExit = SIGNAL_EXIT_SELL;
+   }
+
+   //SignalExit = SIGNAL_EXIT_NEUTRAL;
+
+   return SignalExit;
+}
+
+
+//functions
+
+/* //hump logic
+      CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
+      && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]  */ 
+
+string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+   //Print("AskThePlots2Strategy Idx: " + Idx);
+   //Print("AskThePlots2Strategy Idx: " + (UpperTimeFrame + 6));
+
+   /* Print("CombinedHistory[CndleStart][26]: " + CombinedHistory[CndleStart][26]);
+   Print("CombinedHistory[CndleStart][27]: " + CombinedHistory[CndleStart][27]);
+   Print("CombinedHistory[CndleStart][28]: " + CombinedHistory[CndleStart][28]);
+   Print("CombinedHistory[CndleStart][29]: " + CombinedHistory[CndleStart][29]); */
+
+   /* Print("CombinedHistory[CndleStart][36]: " + CombinedHistory[CndleStart][36]);
+   Print("CombinedHistory[CndleStart][37]: " + CombinedHistory[CndleStart][37]);
+   Print("CombinedHistory[CndleStart][38]: " + CombinedHistory[CndleStart][38]);
+   Print("CombinedHistory[CndleStart][39]: " + CombinedHistory[CndleStart][39]); */
+
+   //SAFETY TRADE BUY 2 STRATEGY, ALL DARK GREEN OR BRIGHT GREEN
+   if (
+      OverallStrategy == "ST_BUY_2_STRATEGY"
+
+      //HIGHER TIME FRAME
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 6)] > 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
+
+      //LOWER TIME FRAME
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "SAFETY TRADE BUY 2 STRATEGY"; 
+
+      /* if (BuySafetyTrade2Strategy == false)
+      {
+         Print("SAFETY TRADE BUY 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+         + " NeutralStrategyActive: " + NeutralStrategyActive);
+         Print("BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy); 
+      }  */
+   }
+
+   //SAFETY TRADE SELL 2 STRATEGY, ALL DARK RED OR BRIGHT RED
+   if (
+      OverallStrategy == "ST_SELL_2_STRATEGY"
+
+      //HIGHER TIME FRAME
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 6)] < 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] < 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
+
+      //LOWER TIME FRAME
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] < 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 +8)] < 0
+      //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "SAFETY TRADE SELL 2 STRATEGY";
+
+      /* if (SellSafetyTrade2Strategy == false)
+      {
+         Print("SAFETY TRADE SELL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+         + " NeutralStrategyActive: " + NeutralStrategyActive);
+         Print("SellSafetyTrade2Strategy: " + SellSafetyTrade2Strategy); 
+      }  */
+   }
+
+   //SAFETY TRADE NEUTRAL 2 STRATEGY, ALL DARK RED OR BRIGHT RED
+   if (
+      OverallStrategy == "ST_NEUTRAL_2_STRATEGY"
+
+      && CurrentStrategy != "ST_BUY_2_STRATEGY"
+      && CurrentStrategy != "ST_SELL_2_STRATEGY"
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "SAFETY TRADE NEUTRAL 2 STRATEGY"; 
+
+      /* if (NeutralSafetyTrade2Strategy == false)
+      {
+         Print("SAFETY TRADE NEUTRAL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+         + " NeutralStrategyActive: " + NeutralStrategyActive);
+         Print("NeutralSafetyTrade2Strategy: " + NeutralSafetyTrade2Strategy);  
+      }  */
+   }
+
+   return result;
+}
+
+string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   /* Print("AskThePlots2StrategyEntry Idx: " + Idx);
+   Print("BuyStrategyActive: " + BuyStrategyActive);
+   Print("OverallStrategy: " + OverallStrategy);
+   Print("BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy);
+   Print("Condition 1: " + (CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]));
+   Print("Condition 2: " + (CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0));
+   Print("Condition 3: " + (CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1])); */
+
+   //ENTRY LOGIC
+
+   //ACTIVE
+   //BUY ENTRY SAFETY TRADE
+   if (
+      BuyStrategyActive == true 
+      && OverallStrategy == "BUY_ST_ENTRY"
+      && BuySafetyTrade2Strategy == true
+
+      && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
+      && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
+
+      //plot 2 is increasing
+      && CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
+
+      //this version calculates the ratio between the sum of the bars and the number of the bars
+      //&& BarColorCount(Idx, "NEGATIVE") <= 0.000035
+      && BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
+      // SniperCockedHigh
+      )
+   { 
+      result = "ENTER A SAFETY TRADE BUY";
+   }
+
+   //ACTIVE
+   //SELL ENTRY SAFETY TRADE
+   if (
+      SellStrategyActive == true 
+      && OverallStrategy == "SELL_ST_ENTRY"
+      && SellSafetyTrade2Strategy == true
+
+      //timeframe above
+      //commented out because i was missing out on a lot of good trades
+      //&& CombinedHistory[CndleStart][26] > CombinedHistory[CndleStart + 1][26]
+
+      && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
+
+      //plot 2 is decreasing
+      && CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+
+      //this version calculates the ratio between the sum of the bars and the number of the bars
+      //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
+      && BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      // SniperCockedLow
+      )
+   {  
+      result = "ENTER A SAFETY TRADE SELL";
+   }
+
+   return result;
+}
+
+string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //EXIT LOGIC
+
+   //ACTIVE
+   //BUY EXIT SAFETY TRADE
+   if (
+      OverallStrategy == "BUY_ST_EXIT" 
+      
+      /* && CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
+      && Bid > EntryData[1][10]
+      && CombinedHistory[CndleStart][Idx] > 0  */
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
+            && Bid > EntryData[1][10]
+            && CombinedHistory[CndleStart][Idx] > 0)
+         ||
+            //exit if the macd turns to avoid losses
+            //CombinedHistory[CndleStart][Idx - 1] < 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0
+         )
+      )
+   {
+      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
+      result = "EXIT A SAFETY TRADE BUY";
+   }
+
+   //ACTIVE
+   //SELL EXIT SAFETY TRADE
+   if (
+      OverallStrategy == "SELL_ST_EXIT" 
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
+            && Ask < EntryData[0][10]
+            && CombinedHistory[CndleStart][Idx] < 0)
+         ||
+            //exit if the macd turns to avoid losses
+            //CombinedHistory[CndleStart][Idx - 1] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0
+         )
+      )
+   {
+      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
+      result = "EXIT A SAFETY TRADE SELL";
+   }
+
+   return result;
+}
+
+string AskThePlotsSuddenDarkStrategy (int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //BUY STRATEGY, BRIGHT RED TO DARK RED
+   if (
+      OverallStrategy == "SDDN_DK_BUY_BR_RED_DK_RED"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      //candle 1 is negative
+      && CombinedHistory[CndleStart][Idx] < 0 
+      
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 2 is negative
+      && CombinedHistory[CndleStart + 1][Idx] < 0 
+      //candle 3 is negative
+      && CombinedHistory[CndleStart + 3][Idx] < 0 
+      )
+   {
+      OpportunityStrategy = OverallStrategy; 
+      result = "PLOT INCREASING BRIGHT RED TO DARK RED";
+   }
+
+   //SELL STRATEGY, BRIGHT GREEN TO DARK GREEN
+   if (
+      OverallStrategy == "SDDN_DK_SELL_BR_GREEN_DK_GREEN"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0 
+      
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 2 is positive
+      && CombinedHistory[CndleStart + 1][Idx] > 0
+      //candle 3 is positive
+      && CombinedHistory[CndleStart + 2][Idx] > 0
+
+      /* ///candle 3 greater than or equal to candle 4
+      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart + 2][Idx] > 0 
+
+      //candle 3 greater than or equal to candle 4
+      && NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 4][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart + 3][Idx] > 0   */ 
+      )
+    {
+      OpportunityStrategy = OverallStrategy; 
+      result = "PLOT DECREASING BRIGHT GREEN TO DARK GREEN";
+   } 
+
+   //NEUTRAL STRATEGY,
+   if (
+      OverallStrategy == "SDDN_DK_NEUTRAL_STRATEGY"
+
+      && OpportunityStrategy != "SDDN_DK_BUY_BR_RED_DK_RED"
+      && OpportunityStrategy != "SDDN_DK_SELL_BR_GREEN_DK_GREEN"
+      )
+   {
+      OpportunityStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "SUDDEN DARK NEUTRAL STRATEGY"; 
+
+      /* if (NeutralSafetyTrade2Strategy == false)
+      {
+         Print("SAFETY TRADE NEUTRAL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+         + " NeutralStrategyActive: " + NeutralStrategyActive);
+         Print("NeutralSafetyTrade2Strategy: " + NeutralSafetyTrade2Strategy);  
+      }  */
+   }
+
+   return result;
+}
+
+string AskThePlotsSuddenDarkStrategy2 (int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //BUY STRATEGY, BRIGHT RED TO DARK RED
+   if (
+      OverallStrategy == "SDDN_DK_BUY_BR_RED_DK_RED"
+
+      //candle 1 greater than candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) > NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      //candle 1 is negative
+      && CombinedHistory[CndleStart][Idx] < 0 
+      
+      //candle 2 greater than candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) > NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7)
+      //candle 2 is positive
+      && CombinedHistory[CndleStart + 1][Idx] < 0  
+      
+      //candle 3 less than candle 4
+      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) < NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      //candle 3 is negative
+      && CombinedHistory[CndleStart + 2][Idx] < 0
+      //candle 4 is negative
+      && CombinedHistory[CndleStart + 3][Idx] < 0
+      )
+   {
+      OpportunityStrategy = OverallStrategy; 
+      result = "PLOT INCREASING BRIGHT RED TO DARK RED";
+   }
+
+   //SELL STRATEGY, BRIGHT GREEN TO DARK GREEN
+   if (
+      OverallStrategy == "SDDN_DK_SELL_BR_GREEN_DK_GREEN"
+
+      //candle 1 less than candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) < NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7)
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0
+
+      //candle 2 less than candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) < NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7)
+      //candle 2 is positive
+      && CombinedHistory[CndleStart + 1][Idx] > 0  
+      
+      //candle 3 greater than to candle 4
+      && NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) > NormalizeDouble(CombinedHistory[CndleStart + 3][Idx] ,7) 
+      //candle 3 is positive
+      && CombinedHistory[CndleStart + 2][Idx] > 0
+      //candle 4 is positive
+      && CombinedHistory[CndleStart + 3][Idx] > 0
+      )
+    {
+      OpportunityStrategy = OverallStrategy; 
+      result = "PLOT DECREASING BRIGHT GREEN TO DARK GREEN";
+   } 
+
+   //NEUTRAL STRATEGY,
+   if (
+      OverallStrategy == "SDDN_DK_NEUTRAL_STRATEGY"
+
+      && OpportunityStrategy != "SDDN_DK_BUY_BR_RED_DK_RED"
+      && OpportunityStrategy != "SDDN_DK_SELL_BR_GREEN_DK_GREEN"
+      )
+   {
+      OpportunityStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "SUDDEN DARK NEUTRAL STRATEGY"; 
+
+      /* if (NeutralSafetyTrade2Strategy == false)
+      {
+         Print("SAFETY TRADE NEUTRAL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+         + " NeutralStrategyActive: " + NeutralStrategyActive);
+         Print("NeutralSafetyTrade2Strategy: " + NeutralSafetyTrade2Strategy);  
+      }  */
+   }
+
+   return result;
+}
+
+string AskThePlotsSuddenDarkEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //ENTRY LOGIC
+
+   //ACTIVE
+   //BUY ENTRY SAFETY TRADE
+   if (
+      //1 == 1
+      //SellStrategyActive == true 
+
+      OverallStrategy == "BUY_SDDN_DARK_ENTRY"
+
+      //&& SellSafetyTrade2Strategy == true
+
+      //&& CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
+      //&& CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
+
+      //plot 2 is decreasing
+      //&& CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+
+      //this version calculates the ratio between the sum of the bars and the number of the bars
+      //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
+      //&& BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      // SniperCockedLow
+      )
+   {  
+      result = "ENTER A SDDN DARK TRADE BUY";
+   }
+
+   //ACTIVE
+   //SELL ENTRY SAFETY TRADE
+   if (
+      //1 == 1
+      //SellStrategyActive == true 
+
+      OverallStrategy == "SELL_SDDN_DARK_ENTRY"
+
+      //&& SellSafetyTrade2Strategy == true
+
+      //&& CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
+      //&& CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
+
+      //plot 2 is decreasing
+      //&& CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
+
+      //this version calculates the ratio between the sum of the bars and the number of the bars
+      //&& BarColorCount(Idx, "POSITIVE") <= 0.000035
+      //&& BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
+      // SniperCockedLow
+      )
+   {  
+      result = "ENTER A SDDN DARK TRADE SELL";
+   }
+
+   return result;
+}
+
+string AskThePlotsSuddenDarkExit(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //EXIT LOGIC
+
+   //ACTIVE
+   //SELL EXIT SUDDEN DARK
+   if (
+      OverallStrategy == "BUY_SDDN_DARK_EXIT" 
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
+            //&& Bid > EntryData[1][10]
+            && CombinedHistory[CndleStart][Idx] > 0)
+            /* ||
+            (Bid > EntryData[1][10] + 60 * Point) */
+            ||
+            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx] 
+            && CombinedHistory[CndleStart][Idx] < 0)
+         /* ||
+            //exit if the macd turns to avoid losses
+            //CombinedHistory[CndleStart][Idx - 1] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0 */
+         )
+      )
+   {
+      ObjectDelete("objLastHighest");
+      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
+      result = "EXIT A SDDN DARK TRADE BUY";
+   }
+
+
+   //ACTIVE
+   //SELL EXIT SUDDEN DARK
+   if (
+      OverallStrategy == "SELL_SDDN_DARK_EXIT" 
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
+            //&& Ask < EntryData[0][10]
+            && CombinedHistory[CndleStart][Idx] < 0)
+            /* ||
+            (Ask < EntryData[0][10] - 60 * Point) */
+            ||
+            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
+            && CombinedHistory[CndleStart][Idx] > 0)
+         /* ||
+            //exit if the macd turns to avoid losses
+            //CombinedHistory[CndleStart][Idx - 1] > 0
+            CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0 */
+         )
+      )
+   {
+      ObjectDelete("objLastLowest");
+      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
+      result = "EXIT A SDDN DARK TRADE SELL";
+   }
+
+   return result;
+}
+
+double BarColorCount (int Idx, string Command){
+
+
+   int count = 1;
+   float barSum = 0.0;
+
+   if (Command == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
+   {
+      do 
+     { 
+      barSum = barSum + CombinedHistory[count + 1][Idx];
+      count++; // without this operator an infinite loop will appear! 
+     } 
+      while(CombinedHistory[count + 1][Idx] < 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      //if(count <= 20)
+      if(count <= BarCountThreshold)
+      {
+         return MathAbs(barSum)/count;
+      }
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      } 
+   }
+   else
+   if (Command == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
+   {
+      do 
+     { 
+      barSum = barSum + CombinedHistory[count + 1][Idx];
+      count++; // without this operator an infinite loop will appear! 
+     } 
+      while(CombinedHistory[count + 1][Idx] > 0);
+
+      Print("Bar sum absolute value: " + MathAbs(barSum));
+      Print("Count: " + count);
+      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
+
+      //if(count <= 20)
+      if(count <= BarCountThreshold)
+      {
+         return MathAbs(barSum)/count;
+      } 
+      else
+      {
+         Print("Rejected for count too high: " + count);
+      }     
+   }
+
+   /* Print("Bar sum absolute value: " + MathAbs(barSum));
+   Print("Returned BarColorCount: " + count);
+   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6)); */
+
+   return 99.99;
+   //return MathAbs(barSum)/count;
+}
+
+double GetLastHighestLowest(string command, int timeframe, int timeseries, int count, int start)
+{
+   double result;
+   int returnedCandle;
+
+  if (command == "HIGHEST")
+   {
+      returnedCandle = iHighest(Symbol(), Period(), MODE_CLOSE, count, start);
+
+
+      ObjectDelete("objLastHighest");
+      ObjectCreate("objLastHighest", OBJ_HLINE, 0, Time[0], High[returnedCandle]);
+      ObjectSet("objLastHighest", OBJPROP_COLOR,clrSeaGreen);
+      ObjectSet("objLastHighest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
+
+      /* CandleComments = CandleComments + 
+      "Last Highest: " + High[returnedCandle] + " at candle " + returnedCandle + "\n"; */
+
+      result = High[returnedCandle];
+   }
+  else
+   if (command == "LOWEST")
+   {
+      returnedCandle = iLowest(Symbol(), Period(), MODE_CLOSE, count, start);
+      ObjectDelete("objLastLowest");
+      ObjectCreate("objLastLowest", OBJ_HLINE, 0, Time[0], Low[returnedCandle]);
+      ObjectSet("objLastLowest", OBJPROP_COLOR, clrFireBrick);
+      ObjectSet("objLastLowest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
+
+      /* CandleComments = CandleComments + 
+      "Last Lowest: " + Low[returnedCandle] + " at candle " + returnedCandle + "\n"; */
+
+      result = Low[returnedCandle];
+   }
+  else
+   {
+      result == 99.99;
+   }
+
+   return result;
+}
+
+int CandleColorHowLong(int Idx, string command, int CndleStart)
+{
+   int count = 0;
+   //Print("CandleColorHowLong");
+   //Print("command: " + command);
+
+   if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] > 0
+         && CombinedHistory[CndleStart + count + 2][Idx] > 0
+         );
+
+         Print("BR_GREEN Count: " + count);
+   }
+
+   if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] > 0
+         && CombinedHistory[CndleStart + count + 2][Idx] > 0
+         );
+
+         //Print("Count: " + count);
+   }
+
+   if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] < 0
+         && CombinedHistory[CndleStart + count + 2][Idx] < 0
+         );
+
+         Print("BR_RED Count: " + count);
+   }
+
+   if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   {
+      do
+      { 
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] < 0
+         && CombinedHistory[CndleStart + count + 2][Idx] < 0
+         );
+   }
+
+   return count;
+}
+
+int GetSniperData(string command, int CndleStart)
+{
+   int result = -99;
+   int SniperIndex;
+
+   switch (UpperTimeFrame)
+   {
+      case 10: 
+      SniperIndex = 2; 
+      break; 
+
+      case 20: 
+      SniperIndex = 3; 
+      break;   
+   }
+
+   if (command == "CURRENT_VALUE")
+   {
+      result = CombinedHistory[CndleStart][(40 + SniperIndex)];
+   }
+
+   return result;
+}
+//===============================
 
 void DutoWind_Strategy()
 {
@@ -2328,242 +3082,6 @@ ENUM_SIGNAL_EXIT DutoWind_Exit()
 
    //SignalExit = SIGNAL_EXIT_NEUTRAL;
    return SignalExit;
-}
-
-//functions
-
-/* //hump logic
-      CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
-      && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]  */ 
-
-string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
-{
-   string result = "";
-
-   //SAFETY TRADE BUY 2 STRATEGY
-   if (
-      OverallStrategy == "ST_BUY_2_STRATEGY"
-
-      //HIGHER TIME FRAME
-
-      //plot 1 candle 1 is positive
-      && 
-      (
-         CombinedHistory[CndleStart][(UpperTimeFrame + 6)] > 0
-         || 
-         (AllowStrat2Dark 
-         && CandleColorHowLong(UpperTimeFrame + 6, "DK_RED", 1) >= 1)
-      )
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
-
-      //LOWER TIME FRAME
-
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 6)] > 0
-      
-      /* //plot 1 candle 1 is positive
-      && 
-      (
-         CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
-         || 
-         (AllowStrat2Dark 
-         && CandleColorHowLong(UpperTimeFrame + 10 + 7, "DK_RED", 1) >= 5)
-      ) */
-
-      //plot 1 candle 1 is positive
-      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
-      //plot 1 candle 1 is positive
-      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0
-      )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
-      result = "SAFETY TRADE BUY 2 STRATEGY"; 
-   }
-
-   //SAFETY TRADE SELL 2 STRATEGY, ALL DARK RED OR BRIGHT RED
-   if (
-      OverallStrategy == "ST_SELL_2_STRATEGY"
-
-      //HIGHER TIME FRAME
-
-      //plot 1 candle 1 is positive
-      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 6)] < 0
-      && 
-      (
-         CombinedHistory[CndleStart][(UpperTimeFrame + 6)] < 0
-         || 
-         (AllowStrat2Dark 
-         && CandleColorHowLong(UpperTimeFrame + 6, "DK_GREEN", 1) >= 1)
-      )
-
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] < 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
-
-      //LOWER TIME FRAME
-
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 6)] < 0
-
-      /* //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] < 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 +8)] < 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] < 0 */
-      )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
-      result = "SAFETY TRADE SELL 2 STRATEGY";
-
-      /* if (SellSafetyTrade2Strategy == false)
-      {
-         Print("SAFETY TRADE SELL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
-         + " NeutralStrategyActive: " + NeutralStrategyActive);
-         Print("SellSafetyTrade2Strategy: " + SellSafetyTrade2Strategy); 
-      }  */
-   }
-
-   //SAFETY TRADE NEUTRAL 2 STRATEGY, ALL DARK RED OR BRIGHT RED
-   if (
-      OverallStrategy == "ST_NEUTRAL_2_STRATEGY"
-
-      && CurrentStrategy != "ST_BUY_2_STRATEGY"
-      && CurrentStrategy != "ST_SELL_2_STRATEGY"
-      )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
-      result = "SAFETY TRADE NEUTRAL 2 STRATEGY"; 
-
-      /* if (NeutralSafetyTrade2Strategy == false)
-      {
-         Print("SAFETY TRADE NEUTRAL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
-         + " NeutralStrategyActive: " + NeutralStrategyActive);
-         Print("NeutralSafetyTrade2Strategy: " + NeutralSafetyTrade2Strategy);  
-      }  */
-   }
-
-   return result;
-}
-
-string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
-{
-   string result = "";
-
-   //ENTRY LOGIC
-
-   //ACTIVE
-   //BUY ENTRY SAFETY TRADE
-   if (
-      BuyStrategyActive == true 
-      && OverallStrategy == "BUY_ST_ENTRY"
-      && BuySafetyTrade2Strategy == true
-
-      && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
-      && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
-
-      //plot 2 is increasing
-      //&& CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
-
-      //this version calculates the ratio between the sum of the bars and the number of the bars
-      //&& BarColorCount(Idx, "NEGATIVE") <= BarColorCountThreshold
-      // SniperCockedHigh
-      )
-   { 
-      result = "ENTER A SAFETY TRADE BUY";
-   }
-
-   //ACTIVE
-   //SELL ENTRY SAFETY TRADE
-   if (
-      SellStrategyActive == true 
-      && OverallStrategy == "SELL_ST_ENTRY"
-      && SellSafetyTrade2Strategy == true
-
-      //timeframe above
-      //commented out because i was missing out on a lot of good trades
-      //&& CombinedHistory[CndleStart][26] > CombinedHistory[CndleStart + 1][26]
-
-      && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
-      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
-
-      //plot 2 is decreasing
-      //&& CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
-
-      //this version calculates the ratio between the sum of the bars and the number of the bars
-      //&& BarColorCount(Idx, "POSITIVE") <= BarColorCountThreshold
-      // SniperCockedLow
-      )
-   {  
-      result = "ENTER A SAFETY TRADE SELL";
-   }
-
-   return result;
-}
-
-string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
-{
-   string result = "";
-
-   //EXIT LOGIC
-
-   //BUY EXIT SAFETY TRADE
-   if (
-      OverallStrategy == "BUY_ST_EXIT" 
-
-      && 
-         (  //typical take profit exit
-            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
-            && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]
-
-            //commented out the bid/ask restriction so I can exit early
-            //if the macd goes bad
-            && Bid > EntryData[1][10]
-            && CombinedHistory[CndleStart][Idx] > 0
-            )
-         ||
-            //exit if the macd turns to avoid losses
-            //CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0
-            (CombinedHistory[0][UpperTimeFrame + 10 + 6] < 0)
-         )
-      )
-   {
-      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
-      result = "EXIT A SAFETY TRADE BUY";
-   }
-
-   //SELL EXIT SAFETY TRADE
-   if (
-      OverallStrategy == "SELL_ST_EXIT" 
-
-      && 
-         (  //typical take profit exit
-            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
-            //commented out the bid/ask restriction so I can exit early
-            //if the macd goes bad
-            && Ask < EntryData[0][10]
-            && CombinedHistory[CndleStart][Idx] < 0
-            )
-         ||
-            //exit if the macd turns to avoid losses
-            (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0)
-         )
-      )
-   {
-      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
-      result = "EXIT A SAFETY TRADE SELL";
-   }
-
-   return result;
 }
 
 string AskThePlotsStrategy(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
@@ -3224,178 +3742,6 @@ string AskThePlots(int Idx, int CndleStart, int CmbndHstryCandleLength, string O
    return result;
 }
 
-double BarColorCount (int Idx, string Command){
-
-
-   int count = 1;
-   float barSum = 0.0;
-
-   if (Command == "NEGATIVE" && CombinedHistory[count + 1][Idx] < 0 )
-   {
-      do 
-     { 
-      barSum = barSum + CombinedHistory[count + 1][Idx];
-      count++; // without this operator an infinite loop will appear! 
-     } 
-      while(CombinedHistory[count + 1][Idx] < 0);
-
-      Print("Bar sum absolute value: " + MathAbs(barSum));
-      Print("Count: " + count);
-      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
-
-      //if(count <= 20)
-      if(count <= BarCountThreshold)
-      {
-         return MathAbs(barSum)/count;
-      }
-      else
-      {
-         Print("Rejected for count too high: " + count);
-      } 
-   }
-   else
-   if (Command == "POSITIVE" && CombinedHistory[count + 1][Idx] > 0)
-   {
-      do 
-     { 
-      barSum = barSum + CombinedHistory[count + 1][Idx];
-      count++; // without this operator an infinite loop will appear! 
-     } 
-      while(CombinedHistory[count + 1][Idx] > 0);
-
-      Print("Bar sum absolute value: " + MathAbs(barSum));
-      Print("Count: " + count);
-      Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6));
-
-      //if(count <= 20)
-      if(count <= BarCountThreshold)
-      {
-         return MathAbs(barSum)/count;
-      } 
-      else
-      {
-         Print("Rejected for count too high: " + count);
-      }     
-   }
-
-   /* Print("Bar sum absolute value: " + MathAbs(barSum));
-   Print("Returned BarColorCount: " + count);
-   Print("Bar sum/BarColorCount: " + NormalizeDouble((MathAbs(barSum)/count) ,6)); */
-
-   return 99.99;
-   //return MathAbs(barSum)/count;
-}
-
-double GetLastHighestLowest(string command, int timeframe, int timeseries, int count, int start)
-{
-   double result;
-   int returnedCandle;
-
-  if (command == "HIGHEST")
-   {
-      returnedCandle = iHighest(Symbol(), Period(), MODE_HIGH, count, start);
-
-
-      ObjectDelete("objLastHighest");
-      ObjectCreate("objLastHighest", OBJ_HLINE, 0, Time[0], High[returnedCandle]);
-      ObjectSet("objLastHighest", OBJPROP_COLOR,clrSeaGreen);
-      ObjectSet("objLastHighest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
-
-      /* CandleComments = CandleComments + 
-      "Last Highest: " + High[returnedCandle] + " at candle " + returnedCandle + "\n"; */
-
-      result = High[returnedCandle];
-   }
-  else
-   if (command == "LOWEST")
-   {
-      returnedCandle = iLowest(Symbol(), Period(), MODE_LOW, count, start);
-      ObjectDelete("objLastLowest");
-      ObjectCreate("objLastLowest", OBJ_HLINE, 0, Time[0], Low[returnedCandle]);
-      ObjectSet("objLastLowest", OBJPROP_COLOR, clrFireBrick);
-      ObjectSet("objLastLowest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
-
-      /* CandleComments = CandleComments + 
-      "Last Lowest: " + Low[returnedCandle] + " at candle " + returnedCandle + "\n"; */
-
-      result = Low[returnedCandle];
-   }
-  else
-   {
-      result == 99.99;
-   }
-
-   return result;
-}
-
-int CandleColorHowLong(int Idx, string command, int CndleStart)
-{
-   int count = 0;
-   //Print("CandleColorHowLong");
-   //Print("command: " + command);
-
-   if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
-   {
-      do
-      { 
-         count++;
-      } 
-      while(
-         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
-         && CombinedHistory[CndleStart + count + 1][Idx] > 0
-         && CombinedHistory[CndleStart + count + 2][Idx] > 0
-         );
-
-         //Print("BR_GREEN Count: " + count);
-   }
-
-   if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
-   {
-      do
-      { 
-         count++;
-      } 
-      while(
-         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
-         && CombinedHistory[CndleStart + count + 1][Idx] > 0
-         && CombinedHistory[CndleStart + count + 2][Idx] > 0
-         );
-
-         //Print("Count: " + count);
-   }
-
-   if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
-   {
-      do
-      { 
-         count++;
-      } 
-      while(
-         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
-         && CombinedHistory[CndleStart + count + 1][Idx] < 0
-         && CombinedHistory[CndleStart + count + 2][Idx] < 0
-         );
-
-         //Print("BR_RED Count: " + count);
-   }
-
-   if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
-   {
-      do
-      { 
-         count++;
-      } 
-      while(
-         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
-         && CombinedHistory[CndleStart + count + 1][Idx] < 0
-         && CombinedHistory[CndleStart + count + 2][Idx] < 0
-         );
-
-         //Print("DK_RED Count: " + count);
-   }
-
-   return count;
-}
 
 //DutoWind
 

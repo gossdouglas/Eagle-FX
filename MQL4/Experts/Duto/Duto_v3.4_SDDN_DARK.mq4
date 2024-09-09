@@ -189,7 +189,7 @@ bool SellDkGrBrRdStrategyActive, BuyBrRdDkRdStrategyActive;
 bool SellDkRdBrRdStrategyActive, BuyDkRdBrGrStrategyActive;
 
 bool SellTradeActive, BuyTradeActive, TradeActive;
-bool SellTradePending, BuyTradePending, TradePending;
+bool SellTradesValid, BuyTradesValid, TradePending;
 
 bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strategy;
 
@@ -578,7 +578,7 @@ void ExecuteEntry()
 
       SellTradeActive = true;
       TradePending = false;
-      SellTradePending = false;
+      SellTradesValid = false;
    }
 }
 
