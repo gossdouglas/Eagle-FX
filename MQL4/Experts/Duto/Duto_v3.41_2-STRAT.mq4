@@ -429,6 +429,8 @@ void EvaluateEntry()
    // whether a new candle has been started is based on the chart that is shown
    if (IsNewCandle)
    {
+      WriteTextToRight();
+
       //Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
 
       // Re-initialize the EA candle comments at every new candle
@@ -460,7 +462,7 @@ void EvaluateEntry()
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
    if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar 
-      && (!TotalOpenOrders > 0) && !(UseTradingHours && IsOperatingHours))
+      && (!TotalOpenOrders > 0))
    { 
       // evaluate for a signal entry
       SignalEntry = ReturnSignalEntryToEvaluateEntry();
@@ -490,9 +492,8 @@ void ExecuteEntry()
    double StopLossPrice = 0;
    double TakeProfitPrice = 0;
    // If there is a Buy entry signal
-   //if (SignalEntry == SIGNAL_ENTRY_BUY)
-   //if (BuyTradePending == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP))
-   if (BuyTradesValid == true && !TotalOpenOrders && EntryConditionsOk("BUY", 1))
+   if (SignalEntry == SIGNAL_ENTRY_BUY)
+   //if (!IsTradedThisBar && BuyTradesValid == true && !TotalOpenOrders && EntryConditionsOk("BUY", 1))
    {
       RefreshRates();     // Get latest rates
       Operation = OP_BUY; // Set the operation to BUY
@@ -532,8 +533,8 @@ void ExecuteEntry()
       SendOrder(Operation, Symbol(), OpenPrice, StopLossPrice, TakeProfitPrice);
    }
    
-   //if (SignalEntry == SIGNAL_ENTRY_SELL)
-   if (SellTradesValid == true && (CombinedHistory[0][UpperTimeFrame + 10 + 6] < TradePendingMacdSP))
+   if (SignalEntry == SIGNAL_ENTRY_SELL)
+   //if (!IsTradedThisBar && SellTradesValid == true && !TotalOpenOrders && EntryConditionsOk("SELL", 1))
    {
       RefreshRates();      // Get latest rates
 
@@ -1592,21 +1593,29 @@ bool EntryConditionsOk (string command, int CndleStart)
    bool result = false;
 
    if (command == "BUY"
-         && Ask < CombinedHistory[0][UpperTimeFrame + 10 + 2]
+         //ask less than the FMA
+         //&& Ask < CombinedHistory[0][UpperTimeFrame + 10 + 2]
          //delta c positive
-         && (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 5] == 1)
+         //&& (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 5] == 1)
 
-         && (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP)
-         //&& (CombinedHistory[0][UpperTimeFrame + 10 + 6] > CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6]) 
 
+         //MACD is at least some limit
+         //&& (CombinedHistory[0][UpperTimeFrame + 10 + 6] > TradePendingMacdSP)
+
+         //MACD
+         && CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] >  CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6]
+         && CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] > 0 && CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6] > 0
+         //plot 2 is greater than 0 or dark red for some candle length
          && 
          (CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
          || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 7, "DK_RED", 1) >= 1)
-         ) 
+         )
+         //plot 3 is greater than 0 or dark red for some candle length
          && 
          (CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
          || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 8, "DK_RED", 1) >= 1)
          ) 
+         //plot 4 is greater than 0 or dark red for some candle length
          && 
          (CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
          || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 9, "DK_RED", 1) >= 1)
@@ -1616,7 +1625,59 @@ bool EntryConditionsOk (string command, int CndleStart)
       result = true;
    }
 
+   if (command == "SELL"
+         //ask less than the FMA
+         //&& Bid > CombinedHistory[0][UpperTimeFrame + 10 + 2]
+         //delta c negative
+         //&& (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 5] == -1)
+         //MACD is at least some limit
+         //&& (CombinedHistory[0][UpperTimeFrame + 10 + 6] < TradePendingMacdSP)
+
+         //MACD
+         && CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] <  CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6]
+         && CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0 && CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6] < 0
+         //plot 2 is greater than 0 or dark red for some candle length
+         && 
+         (CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] < 0
+         || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 7, "DK_GREEN", 1) >= 1)
+         )
+         //plot 3 is greater than 0 or dark red for some candle length
+         && 
+         (CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
+         || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 8, "DK_GREEN", 1) >= 1)
+         ) 
+         //plot 4 is greater than 0 or dark red for some candle length
+         && 
+         (CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
+         || (AllowStrat2Dark && CandleColorHowLong(UpperTimeFrame + 10 + 9, "DK_GREEN", 1) >= 1)
+         ) 
+      )    
+   {
+      result = true;
+   }
+
    return result;
+}
+
+void WriteTextToRight()
+{
+   ObjectDelete("objTest1");
+   ObjectDelete("objTest2");
+
+   string str="TEST BITCHES.";
+
+   ObjectCreate("objTest1", OBJ_LABEL, 0, 0, 0);
+   ObjectSetText("objTest1",str, 8,"Arial", Yellow); // 
+   ObjectSet("objTest1", OBJPROP_CORNER, 1);
+   ObjectSet("objTest1", OBJPROP_XDISTANCE, 1);
+   ObjectSet("objTest1", OBJPROP_YDISTANCE, 15);
+
+   ObjectCreate("objTest2", OBJ_LABEL, 0, 0, 0);
+   ObjectSetText("objTest2",str, 8,"Arial", Yellow); // 
+   ObjectSet("objTest2", OBJPROP_CORNER, 1);
+   ObjectSet("objTest2", OBJPROP_XDISTANCE, 1);
+   ObjectSet("objTest2", OBJPROP_YDISTANCE, 30);
+
 }
 
 //********************************************************************************************************
@@ -1709,7 +1770,7 @@ void DutoWind_2Strategy()
 
       /* Print("SAFETY TRADE BUY 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
       + " NeutralStrategyActive: " + NeutralStrategyActive);
-      Print("BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy);  */    
+      Print("BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy); */     
    }
 
    //SELL 2 STRATEGY SAFETY TRADE
@@ -1730,7 +1791,7 @@ void DutoWind_2Strategy()
 
       /* Print("SAFETY TRADE SELL 2 STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
       + " NeutralStrategyActive: " + NeutralStrategyActive);
-      Print("SellSafetyTrade2Strategy: " + SellSafetyTrade2Strategy); */    
+      Print("SellSafetyTrade2Strategy: " + SellSafetyTrade2Strategy);  */   
    }
 
    //NEUTRAL 2 STRATEGY SAFETY TRADE
@@ -1765,22 +1826,23 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
    //don't allow new trades to be made outside of the selected trading hours
    if (UseTradingHours && !IsOperatingHours)
    {
+      //Print("DutoWind_2StrategyEntry: UseTradingHours && !IsOperatingHours");
       SignalEntry = SIGNAL_ENTRY_NEUTRAL;
       return SignalEntry; // If you are using trading hours and it's not a trading hour don't give an entry signal
    } 
 
    //BUY ENTRY //ACTIVE 
    if (
-         //(AskThePlots2StrategyEntry(36, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
          (AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 6, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
+         //(AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 7, 1, 1, "BUY_ST_ENTRY") == "ENTER A SAFETY TRADE BUY")
          && BuyStrategyActive == true 
          && BuyTradeActive == false
 
          && BuySafetyTrade2Strategy == true
       )
    {
-      BuyTradesValid = true;
-      //BuyTradeActive = true;
+      //BuyTradesValid = true;
+      BuyTradeActive = true;
 
       Print("ENTER A SAFETY TRADE BUY." +
       "SellTradeActive: " + SellTradeActive + 
@@ -1794,16 +1856,16 @@ ENUM_SIGNAL_ENTRY DutoWind_2StrategyEntry()
    //SELL ENTRY //ACTIVE
   
    if (
-         //(AskThePlots2StrategyEntry(36, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
          (AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 6, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
+         //(AskThePlots2StrategyEntry(UpperTimeFrame + 10 + 7, 1, 1, "SELL_ST_ENTRY") == "ENTER A SAFETY TRADE SELL")
          && SellStrategyActive == true 
          && SellTradeActive == false
 
          && SellSafetyTrade2Strategy == true
       )
    {
-      SellTradesValid = true;
-      //SellTradeActive = true;
+      //SellTradesValid = true;
+      SellTradeActive = true;
 
       Print("ENTER A SAFETY TRADE SELL." +
       "SellTradeActive: " + SellTradeActive + 
@@ -2355,33 +2417,44 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
          && CandleColorHowLong(UpperTimeFrame + 6, "DK_RED", 1) >= 1)
       )
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
-      //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
-
-      //LOWER TIME FRAME
-
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 6)] > 0
-      
-      /* //plot 1 candle 1 is positive
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
       && 
       (
-         CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
+         CombinedHistory[CndleStart][(UpperTimeFrame + 7)] > 0
          || 
          (AllowStrat2Dark 
-         && CandleColorHowLong(UpperTimeFrame + 10 + 7, "DK_RED", 1) >= 5)
-      ) */
+         && CandleColorHowLong(UpperTimeFrame + 7, "DK_RED", 1) >= 1)
+      )
+      //plot 1 candle 1 is positive
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 8)] > 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 8, "DK_RED", 1) >= 1)
+      )
+      //plot 1 candle 1 is positive
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 9)] > 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 9, "DK_RED", 1) >= 1)
+      )
 
+      //LOWER TIME FRAME
+      
+      /* //plot 1 candle 1 is positive
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] > 0
       //plot 1 candle 1 is positive
-      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 8)] > 0
       //plot 1 candle 1 is positive
-      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0
+      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 9)] > 0 */
       )
    {
       CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
       result = "SAFETY TRADE BUY 2 STRATEGY"; 
    }
 
@@ -2400,17 +2473,35 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
          (AllowStrat2Dark 
          && CandleColorHowLong(UpperTimeFrame + 6, "DK_GREEN", 1) >= 1)
       )
-
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 7)] < 0
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 7)] < 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 7)] < 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 7, "DK_GREEN", 1) >= 1)
+      )
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 8)] < 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 8, "DK_GREEN", 1) >= 1)
+      )
       //plot 1 candle 1 is positive
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
+      //&& CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
+      && 
+      (
+         CombinedHistory[CndleStart][(UpperTimeFrame + 9)] < 0
+         || 
+         (AllowStrat2Dark 
+         && CandleColorHowLong(UpperTimeFrame + 9, "DK_GREEN", 1) >= 1)
+      )
 
       //LOWER TIME FRAME
-
-      && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 6)] < 0
 
       /* //plot 1 candle 1 is positive
       && CombinedHistory[CndleStart][(UpperTimeFrame + 10 + 7)] < 0
@@ -2421,7 +2512,6 @@ string AskThePlots2Strategy(int Idx, int CndleStart, int CmbndHstryCandleLength,
       )
    {
       CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
       result = "SAFETY TRADE SELL 2 STRATEGY";
 
       /* if (SellSafetyTrade2Strategy == false)
@@ -2468,8 +2558,13 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && OverallStrategy == "BUY_ST_ENTRY"
       && BuySafetyTrade2Strategy == true
 
+      //enter on macd
       && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0
+
+      /* //enter on plot 2
+      && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
+      && CombinedHistory[CndleStart + 1][Idx] < CombinedHistory[CndleStart + 2][Idx] */
 
       //plot 2 is increasing
       //&& CombinedHistory[CndleStart][Idx + 1] >  CombinedHistory[CndleStart + 1][Idx + 1]
@@ -2479,6 +2574,7 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       // SniperCockedHigh
       )
    { 
+      Print("AskThePlots2StrategyEntry buy.");
       result = "ENTER A SAFETY TRADE BUY";
    }
 
@@ -2489,12 +2585,13 @@ string AskThePlots2StrategyEntry(int Idx, int CndleStart, int CmbndHstryCandleLe
       && OverallStrategy == "SELL_ST_ENTRY"
       && SellSafetyTrade2Strategy == true
 
-      //timeframe above
-      //commented out because i was missing out on a lot of good trades
-      //&& CombinedHistory[CndleStart][26] > CombinedHistory[CndleStart + 1][26]
-
+      //enter on macd
       && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
       && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0
+
+      /* //enter on plot 2
+      && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
+      && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx] */
 
       //plot 2 is decreasing
       //&& CombinedHistory[CndleStart][Idx + 1] <  CombinedHistory[CndleStart + 1][Idx + 1]
@@ -2528,11 +2625,13 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
             //commented out the bid/ask restriction so I can exit early
             //if the macd goes bad
             && Bid > EntryData[1][10]
-            && CombinedHistory[CndleStart][Idx] > 0
-            )
+            && CombinedHistory[CndleStart][Idx] > 0)
+         ||
+            //
+            (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] 
+            < CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6])
          ||
             //exit if the macd turns to avoid losses
-            //CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] < 0
             (CombinedHistory[0][UpperTimeFrame + 10 + 6] < 0)
          )
       )
@@ -2551,8 +2650,11 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
             //commented out the bid/ask restriction so I can exit early
             //if the macd goes bad
             && Ask < EntryData[0][10]
-            && CombinedHistory[CndleStart][Idx] < 0
-            )
+            && CombinedHistory[CndleStart][Idx] < 0)
+         ||
+            //
+            (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] 
+            > CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6])
          ||
             //exit if the macd turns to avoid losses
             (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0)
