@@ -173,8 +173,9 @@ bool SellTradeActive, BuyTradeActive, TradeActive;
 bool SellTradesValid, BuyTradesValid, TradePending;
 int TradePendingTimeoutCount;
 
-
 bool BuySafetyTrade2Strategy, SellSafetyTrade2Strategy, NeutralSafetyTrade2Strategy;
+
+int SymmetryObjectRunning = 0;
 
 //HISTORY ARRAYS
 
@@ -430,7 +431,7 @@ void EvaluateEntry()
    // whether a new candle has been started is based on the chart that is shown
    if (IsNewCandle)
    {
-      Print("Number of bars to process: " + Bars);
+      //Print("Number of bars to process: " + Bars);
       WriteTextToRight();
 
       //Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
@@ -456,6 +457,29 @@ void EvaluateEntry()
 
       CandleComments = CandleComments + 
       "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
+
+      if (AskThePlotsColorChange(UpperTimeFrame + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"
+         && CandleColorHowLong(UpperTimeFrame + 6, "BR_RED", 2) > 5
+      
+      )
+      {
+         //CandleColorHowLong(UpperTimeFrame + 6, "BR_RED", 2);
+
+         ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+         ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
+         ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
+         SymmetryObjectRunning++;   
+      }
+
+      /* if (CandleColorHowLong(UpperTimeFrame + 6, "DK_RED", 1) == 1)
+      {
+         Print("Change to DK_RED");
+
+         ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+         ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
+         ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
+         SymmetryObjectRunning++;
+      }  */
 
       StartupFlag = true;
 
@@ -1255,16 +1279,6 @@ void GetCandleZeroIndicatorData()
 
 void LogIndicatorData()
 {
-   /* //indicator variables
-   string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
-   string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
-   string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
-   string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
-   string duto_sniper = "_Custom\\Duto\\SchaffTrendCycle";
-   string strWriteLine, strWriteLine2 = "";
-   int fileHandleIndicatorData;
-   int periodArray[] = {60, 15, 5}; */
-   
    //if the file exists, then delete it so only the most recent data is included
    if (FileIsExist("duto_indicator_data.csv")) {
 
@@ -1744,7 +1758,7 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
 
 int CandleColorHowLong(int Idx, string command, int CndleStart)
 {
-   int count = 0;
+   int count = 1;
    //Print("CandleColorHowLong");
    //Print("command: " + command);
 
@@ -1778,19 +1792,24 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          //Print("Count: " + count);
    }
 
-   if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   //if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   if (command == "BR_RED")
    {
       do
       { 
          count++;
       } 
       while(
-         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         CombinedHistory[CndleStart + count][Idx] < CombinedHistory[CndleStart + count + 1][Idx]
+         && CombinedHistory[CndleStart + count][Idx] < 0
          && CombinedHistory[CndleStart + count + 1][Idx] < 0
-         && CombinedHistory[CndleStart + count + 2][Idx] < 0
+
+         /* CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] < 0
+         && CombinedHistory[CndleStart + count + 2][Idx] < 0 */
          );
 
-         //Print("BR_RED Count: " + count);
+         Print("BR_RED Count: " + count);
    }
 
    if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
@@ -1900,6 +1919,11 @@ void WriteTextToRight()
    ObjectSet("objTest2", OBJPROP_CORNER, 1);
    ObjectSet("objTest2", OBJPROP_XDISTANCE, 1);
    ObjectSet("objTest2", OBJPROP_YDISTANCE, 30);
+
+}
+
+void CheckSymmetry()
+{
 
 }
 
@@ -2370,6 +2394,114 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
    {
       //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
       result = "EXIT A SAFETY TRADE SELL";
+   }
+
+   return result;
+}
+
+string AskThePlotsColorChange(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //STRATEGY LOGIC
+ 
+   //BUY STRATEGY, DARK GREEN TO BRIGHT GREEN
+   if (
+      OverallStrategy == "BUY_DK_GREEN_BR_GREEN"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "PLOT INCREASING DARK GREEN TO BRIGHT GREEN"; 
+   }
+   else
+   //SELL STRATEGY, BRIGHT GREEN TO DARK GREEN
+   if (
+      OverallStrategy == "SELL_BR_GREEN_DK_GREEN"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT DECREASING BRIGHT GREEN TO DARK GREEN");
+      result = "PLOT DECREASING BRIGHT GREEN TO DARK GREEN";
+   }
+   else
+   //SELL STRATEGY, DARK GREEN TO BRIGHT RED
+   if (
+      OverallStrategy == "SELL_DK_GREEN_BR_RED"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is negative, candle 2 is positive, candle 3 is positive
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0 && CombinedHistory[CndleStart + 2][Idx] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT DECREASING DARK GREEN TO BRIGHT RED");
+      result = "PLOT DECREASING DARK GREEN TO BRIGHT RED";
+   }
+   //BUY STRATEGY, BRIGHT RED TO DARK RED
+   if (
+      OverallStrategy == "BUY_BR_RED_DK_RED"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is negative, candle 2 is negative, candle 3 is negative
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT INCREASING BRIGHT RED TO DARK RED");
+      result = "PLOT INCREASING BRIGHT RED TO DARK RED";
+   }
+   //SELL STRATEGY, DARK RED TO BRIGHT RED
+   if (
+      OverallStrategy == "SELL_DK_RED_BR_RED"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is negative, candle 2 is negative, candle 3 is negative
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT DECREASING DARK RED TO BRIGHT RED");
+      result = "PLOT DECREASING DARK RED TO BRIGHT RED";
+   }
+   //BUY STRATEGY, DARK RED TO BRIGHT GREEN
+   if (
+      OverallStrategy == "BUY_DK_RED_BR_GREEN"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive, candle 2 is negative, candle 3 is negative
+      && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT INCREASING DARK RED TO BRIGHT GREEN");
+      result = "PLOT INCREASING DARK RED TO BRIGHT GREEN";
    }
 
    return result;
