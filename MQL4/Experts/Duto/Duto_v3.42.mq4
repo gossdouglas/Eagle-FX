@@ -461,7 +461,7 @@ void EvaluateEntry()
       if (
          //change from bright red to dark red
          AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"
-         //there are 3 or more bright red candles
+         //some # or more bright red candles
          && CandleColorHowLong(UpperTimeFrame + 10 + 6, "BR_RED", 1) >= 3      
       )
       {
@@ -469,14 +469,9 @@ void EvaluateEntry()
          Print("numBrRdCandles: " + numBrRdCandles);
          Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
 
-         //int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles - 1);
-         //int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles);
-         int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles + 1) - 1;
-         
+         int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles + 1) - 1;         
          Print("numDkGrCandles: " + numDkGrCandles);
          Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
-         
-         //CandleColorHowLong(UpperTimeFrame + 6, "BR_RED", 2);
 
          ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
          ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
@@ -1777,16 +1772,21 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
    //Print("CandleColorHowLong");
    //Print("command: " + command);
 
-   if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   //if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   if (command == "BR_GREEN")
    {
       do
       { 
          count++;
       } 
       while(
-         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         CombinedHistory[CndleStart + count][Idx] > CombinedHistory[CndleStart + count + 1][Idx]
+         && CombinedHistory[CndleStart + count][Idx] > 0
          && CombinedHistory[CndleStart + count + 1][Idx] > 0
-         && CombinedHistory[CndleStart + count + 2][Idx] > 0
+
+         /* CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] > 0
+         && CombinedHistory[CndleStart + count + 2][Idx] > 0 */
          );
 
          //Print("BR_GREEN Count: " + count);
