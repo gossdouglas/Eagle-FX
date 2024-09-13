@@ -473,6 +473,14 @@ void EvaluateEntry()
          Print("numDkGrCandles: " + numDkGrCandles);
          Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
 
+         int numBrGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "BR_GREEN", numBrRdCandles + numDkGrCandles + 1);
+         Print("numBrGrCandles: " + numBrGrCandles);
+         Print("Last BrGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles][UpperTimeFrame + 10 + 6]);
+
+         int numDkRdCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_RED", numBrRdCandles + numDkGrCandles + numBrGrCandles + 1) - 1;
+         Print("numDkRdCandles: " + numDkRdCandles);
+         Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]);
+
          ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
          ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
          ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
@@ -1832,16 +1840,21 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          //Print("BR_RED Count: " + count);
    }
 
-   if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   //if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
+   if (command == "DK_RED")
    {
       do
       { 
          count++;
       } 
       while(
-         CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         CombinedHistory[CndleStart + count][Idx] > CombinedHistory[CndleStart + count + 1][Idx]
+         && CombinedHistory[CndleStart + count][Idx] < 0
          && CombinedHistory[CndleStart + count + 1][Idx] < 0
-         && CombinedHistory[CndleStart + count + 2][Idx] < 0
+         
+         /* CombinedHistory[CndleStart + count + 1][Idx] > CombinedHistory[CndleStart + count + 2][Idx]
+         && CombinedHistory[CndleStart + count + 1][Idx] < 0
+         && CombinedHistory[CndleStart + count + 2][Idx] < 0 */
          );
 
          //Print("DK_RED Count: " + count);
