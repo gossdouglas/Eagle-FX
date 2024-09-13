@@ -194,7 +194,7 @@ double CombinedHistory[1][52];
 double BrightTickCount, DarkTickCount;
 
 //LogIndicatorData() variables
-string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.10";
+string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.11";
 string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
 string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
 string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
@@ -458,11 +458,24 @@ void EvaluateEntry()
       CandleComments = CandleComments + 
       "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
 
-      if (AskThePlotsColorChange(UpperTimeFrame + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"
-         && CandleColorHowLong(UpperTimeFrame + 6, "BR_RED", 2) > 5
-      
+      if (
+         //change from bright red to dark red
+         AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"
+         //there are 3 or more bright red candles
+         && CandleColorHowLong(UpperTimeFrame + 10 + 6, "BR_RED", 1) >= 3      
       )
       {
+         int numBrRdCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "BR_RED", 1);
+         Print("numBrRdCandles: " + numBrRdCandles);
+         Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
+
+         //int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles - 1);
+         //int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles);
+         int numDkGrCandles = CandleColorHowLong(UpperTimeFrame + 10 + 6, "DK_GREEN", numBrRdCandles + 1) - 1;
+         
+         Print("numDkGrCandles: " + numDkGrCandles);
+         Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
+         
          //CandleColorHowLong(UpperTimeFrame + 6, "BR_RED", 2);
 
          ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
@@ -491,7 +504,7 @@ void EvaluateEntry()
       && (!TotalOpenOrders > 0))
    { 
       // evaluate for a signal entry
-      SignalEntry = ReturnSignalEntryToEvaluateEntry();
+      //SignalEntry = ReturnSignalEntryToEvaluateEntry();
    }
 
    //GetCandleZeroIndicatorData();
@@ -1758,7 +1771,9 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
 
 int CandleColorHowLong(int Idx, string command, int CndleStart)
 {
-   int count = 1;
+   int count = 0;
+   //int count = 1;
+
    //Print("CandleColorHowLong");
    //Print("command: " + command);
 
@@ -1777,19 +1792,24 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          //Print("BR_GREEN Count: " + count);
    }
 
-   if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   //if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
+   if (command == "DK_GREEN")
    {
       do
       { 
          count++;
       } 
       while(
-         CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
+         (CombinedHistory[CndleStart + count][Idx] < CombinedHistory[CndleStart + count + 1][Idx])
+         && (CombinedHistory[CndleStart + count][Idx] > 0)
+         && (CombinedHistory[CndleStart + count + 1][Idx] > 0)
+
+         /* CombinedHistory[CndleStart + count + 1][Idx] < CombinedHistory[CndleStart + count + 2][Idx]
          && CombinedHistory[CndleStart + count + 1][Idx] > 0
-         && CombinedHistory[CndleStart + count + 2][Idx] > 0
+         && CombinedHistory[CndleStart + count + 2][Idx] > 0 */
          );
 
-         //Print("Count: " + count);
+         //Print("DK_GREEN Count: " + count);
    }
 
    //if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
@@ -1809,7 +1829,7 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          && CombinedHistory[CndleStart + count + 2][Idx] < 0 */
          );
 
-         Print("BR_RED Count: " + count);
+         //Print("BR_RED Count: " + count);
    }
 
    if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
