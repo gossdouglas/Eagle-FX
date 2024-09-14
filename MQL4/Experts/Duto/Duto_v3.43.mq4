@@ -1937,8 +1937,8 @@ void CheckSymmetry(string command, int Idx)
 
       if(
          (numBrRdCandles >= 3)
-         && (numDkGrCandles >= 3)
-         && (numBrGrCandles >= 3)
+         && (numDkGrCandles >= 1)
+         && (numBrGrCandles >= 1)
          //&& (numDkRdCandles >= 1)
       )
       {
