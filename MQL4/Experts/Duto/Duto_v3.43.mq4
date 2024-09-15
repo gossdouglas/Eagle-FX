@@ -463,8 +463,10 @@ void EvaluateEntry()
          AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"     
       )
       {
-         CheckSymmetry("BUY_BR_RED_DK_RED", UpperTimeFrame + 10 + 6);
+         //CheckSymmetry("BUY_BR_RED_DK_RED", UpperTimeFrame + 10 + 6);
       }
+
+      CandleColorHowLong(26, "BR_RED", 1);
 
       StartupFlag = true;
 
@@ -472,14 +474,13 @@ void EvaluateEntry()
    }
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
-   if (StartupFlag ==  true && IsSpreadOK && !IsTradedThisBar 
+   if (StartupFlag == true && IsSpreadOK && !IsTradedThisBar 
       && (!TotalOpenOrders > 0))
    { 
       // evaluate for a signal entry
       //SignalEntry = ReturnSignalEntryToEvaluateEntry();
+      GetCandleZeroIndicatorData();
    }
-
-   //GetCandleZeroIndicatorData();
 
    //PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n";
 
@@ -602,8 +603,6 @@ void EvaluateExit()
       LogIndicatorData();
       StartupFlag = true;
    }
-   
-   GetCandleZeroIndicatorData();
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
    if (StartupFlag == true)
@@ -1137,7 +1136,8 @@ void GetCandleZeroIndicatorData()
 {
    //copy the index zero of the CombinedHistory to CombinedHistoryPrev
    //it is used to compare the last tick to the current tick
-   ArrayCopy(CombinedHistoryPrev, CombinedHistory, 0, 0, WHOLE_ARRAY);
+   //ArrayCopy(CombinedHistoryPrev, CombinedHistory, 0, 0, WHOLE_ARRAY);
+   ArrayCopy(CombinedHistoryPrev, CombinedHistory, 0, 0, 1);
 
    //CombinedHistory[0][X] = NormalizeDouble(iCustom(Symbol(),60, duto_chart_indicators, X, 0), 5);
 
@@ -1260,6 +1260,18 @@ void GetCandleZeroIndicatorData()
    /* PipComments = PipComments + "M5 MACD Candle 0 Prev: " + CombinedHistoryPrev[0][UpperTimeFrame + 10 + 6] + "\n";
    PipComments = PipComments + "M5 MACD Candle 0 Curr: " + CombinedHistory[0][UpperTimeFrame + 10 + 6] + "\n";
    PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n"; */
+
+   PipComments = PipComments + "Sniper Candle 2 M5: " + CombinedHistory[2][42] + "\n";
+   PipComments = PipComments + "Sniper Candle 1 M1: " + CombinedHistory[1][43] + "\n";
+
+   if (CombinedHistory[1][43] > CombinedHistory[2][42])
+   {
+      PipComments = PipComments + "Sniper Creepin Up \n";   
+   }
+   if (CombinedHistory[1][43] < CombinedHistory[2][42])
+   {
+      PipComments = PipComments + "Sniper Creepin Down \n";   
+   }
 }
 
 void LogIndicatorData()
@@ -1806,7 +1818,7 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          && CombinedHistory[CndleStart + count + 2][Idx] < 0 */
          );
 
-         //Print("BR_RED Count: " + count);
+         Print("BR_RED Count: " + count);
    }
 
    //if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
