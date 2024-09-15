@@ -1267,6 +1267,7 @@ void GetCandleZeroIndicatorData()
 
    PipComments = PipComments + "Sniper Candle 2 M5: " + CombinedHistory[2][42] + "\n";
    PipComments = PipComments + "Sniper Candle 1 M1: " + CombinedHistory[1][43] + "\n";
+   PipComments = PipComments + "Sniper Candle 0 M5: " + CombinedHistory[0][42] + "\n";
 
    if (CombinedHistory[1][43] > CombinedHistory[2][42])
    {
@@ -1760,10 +1761,6 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
 int CandleColorHowLong(int Idx, string command, int CndleStart)
 {
    int count = 0;
-   //int count = 1;
-
-   //Print("CandleColorHowLong");
-   //Print("command: " + command);
 
    //if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
    //if (command == "BR_GREEN")
