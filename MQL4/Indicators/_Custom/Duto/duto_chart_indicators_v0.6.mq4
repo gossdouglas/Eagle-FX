@@ -101,10 +101,12 @@ SetIndexBuffer(1,SlowMABuffer);
 ///*
 //delta indicator
 //SetIndexStyle(4, DRAW_LINE, EMPTY, 1, indicator_color5);
+SetIndexLabel(2, "");
 SetIndexStyle(2, DRAW_NONE, EMPTY, 1, indicator_color3);
 //SetIndexBuffer(2,ExtMapBuffer1);
 SetIndexBuffer(2,SdelBuffer);
 //SetIndexStyle(5, DRAW_LINE, EMPTY, 1, indicator_color6);
+SetIndexLabel(3, "");
 SetIndexStyle(3, DRAW_NONE, EMPTY, 1, indicator_color4);
 //SetIndexBuffer(3,ExtMapBuffer2);
 SetIndexBuffer(3,FdelBuffer);
@@ -115,8 +117,10 @@ SetIndexStyle(4, DRAW_LINE, EMPTY, 1, indicator_color5);
 SetIndexBuffer(4,FiveFiftyMABuffer);
 
 //delta collapsed indicator
+SetIndexLabel(5, "");
 SetIndexStyle(5, DRAW_LINE, EMPTY, 5, indicator_color6);
 SetIndexBuffer(5,DeltaCollapsedPosBuffer);
+SetIndexLabel(6, "");
 SetIndexStyle(6, DRAW_LINE, EMPTY, 5, indicator_color7);
 SetIndexBuffer(6,DeltaCollapsedNegBuffer);
 
