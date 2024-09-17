@@ -212,6 +212,7 @@ int periodArray[] = {60, 15, 5};
 double LastHighest, LastLowest;
 bool SniperCockedHigh, SniperCockedLow, SniperCockedNeutral;
 double SniperDayValue;
+int SniperObjectRunning = 0;
 
 //********************************************************************************************************
 //-INPUT PARAMETERS-//
@@ -450,7 +451,7 @@ void EvaluateEntry()
       //evaluate for a strategy
       DutoWind_SelectedStrategy();
       //evaluate the sniper
-      //EvaluateSniper();
+      EvaluateSniper();
 
       //find the last highest and lowest
       LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
@@ -469,13 +470,9 @@ void EvaluateEntry()
          AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"     
       )
       {
-         //Print("CheckSymmetry");
-         //CheckSymmetry("BUY_BR_RED_DK_RED", UpperTimeFrame + 10 + 6);
          CheckSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
-         //CheckSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 1); 
       }
 
-      //Print("CandleColorHowLong BR_RED");
       CandleColorHowLong(UpperTimeFrame + 10 + 6, "BR_RED", 1);
 
       StartupFlag = true;
@@ -1583,34 +1580,24 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
 
          //sniper data
-         /* + "," + CombinedHistory[i][40]
-         + "," + CombinedHistory[i][41]
-         + "," + CombinedHistory[i][42]
-         + "," + CombinedHistory[i][43] */
 
          + "," + i
          + "," + iTime(Symbol(), 60, i) 
          + "," + CombinedHistory[i][42]
          + "," + CombinedHistory[i][43]
          + "," + CombinedHistory[i][44]
-         //+ ",UNUSED"
-         //+ ",UNUSED"
 
          + "," + i
          + "," + iTime(Symbol(), 15, i) 
          + "," + CombinedHistory[i][47]
          + "," + CombinedHistory[i][48]
          + "," + CombinedHistory[i][49]
-         //+ ",UNUSED"
-         //+ ",UNUSED" 
 
          + "," + i
          + "," + iTime(Symbol(), 5, i) 
          + "," + CombinedHistory[i][52]
          + "," + CombinedHistory[i][53]
          + "," + CombinedHistory[i][54]
-         //+ ",UNUSED"
-         //+ ",UNUSED"
 
          + "," + i
          + "," + iTime(Symbol(), 1, i) 
@@ -1657,32 +1644,50 @@ void EvaluateSniper()
    switch (UpperTimeFrame)
    {
       case 0: 
-      sniperIndex = 0; 
+      //sniperIndex = 0;
+      sniperIndex = 40;  
       break; 
 
       case 10: 
-      sniperIndex = 1; 
+      //sniperIndex = 1;
+      sniperIndex = 45;  
       break; 
 
       case 20: 
-      sniperIndex = 2; 
+      //sniperIndex = 2; 
+      sniperIndex = 50; 
       break;  
    }
 
-   if (CombinedHistory[1][(40 + sniperIndex)] == 99)
+   //if (CombinedHistory[1][(40 + sniperIndex)] == 99)
+   //blue sniper high, pink sniper low
+   if (CombinedHistory[1][(sniperIndex + 2)] >= 99
+      && CombinedHistory[1][(sniperIndex + 3)] <= 1)
    {
       str = "HIGH";
       SniperCockedHigh = true;
       SniperCockedLow = false;
       SniperCockedNeutral = false;
+
+      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
+      SniperObjectRunning++; 
    }
    else
-   if (CombinedHistory[1][(40 + sniperIndex)] == 0)
+   //if (CombinedHistory[1][(40 + sniperIndex)] == 0)
+   if (CombinedHistory[1][(sniperIndex + 2)] <= 1
+      && CombinedHistory[1][(sniperIndex + 3)] >= 99)
    {
+      str = "LOW";
       SniperCockedHigh = false;
       SniperCockedLow = true;
-      SniperCockedNeutral = false;
-      str = "LOW";
+      SniperCockedNeutral = false; 
+
+      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrFireBrick);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
+      SniperObjectRunning++;    
    }
    else
    {
@@ -1692,11 +1697,16 @@ void EvaluateSniper()
       str = "NEUTRAL";
    }
       
-   CandleComments = CandleComments + "Sniper Upper Timeframe : " + CombinedHistory[1][(40 + sniperIndex)] + "\n";
+   //CandleComments = CandleComments + "Sniper Upper Timeframe : " + CombinedHistory[1][(40 + sniperIndex)] + "\n";
+   CandleComments = CandleComments + "Sniper Blue Upper Tframe : " + CombinedHistory[1][(sniperIndex + 2)] + "\n";
+   CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";
+   
    CandleComments = CandleComments + "Sniper Cocked : " + str + "\n";
    CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
    CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
    CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
+
+   
 }
 
 double BarColorCount (int Idx, string Command){
@@ -2045,6 +2055,18 @@ void CheckSymmetry(int Idx, string command, int CndleStart)
       }
    } 
 }
+
+/* DrawDutoObject("objSymmetryObject", SymmetryObjectRunning, 
+      OBJ_VLINE, clrSeaGreen, STYLE_DASHDOTDOT); */
+
+/* void DrawDutoObject(string ObjPrefix, int ObjRunning, 
+   ENUM_OBJECT ObjType, color ObjColor, int ObjStyle)
+{
+   ObjectCreate(ObjPrefix + "_" + ObjRunning, ObjType, 0, Time[0], 0);
+   ObjectSet(ObjPrefix + "_" + ObjRunning, OBJPROP_COLOR, ObjColor);
+   ObjectSet(ObjPrefix + "_" + ObjRunning, OBJPROP_STYLE, ObjStyle);
+   ObjRunning++;
+} */
 
 //********************************************************************************************************
 
