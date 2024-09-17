@@ -198,7 +198,12 @@ string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.11";
 string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
 string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
 string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
+
 string duto_sniper = "_Custom\\Duto\\Sniper_v1";
+string SniperBlue = "_Custom\\Duto\\SniperBlue";
+string SniperPink = "_Custom\\Duto\\SniperPink";
+string SniperPurple = "_Custom\\Duto\\SniperPurple";
+
 string strWriteLine, strWriteLine2 = "";
 int fileHandleIndicatorData;
 int periodArray[] = {60, 15, 5};
@@ -206,6 +211,7 @@ int periodArray[] = {60, 15, 5};
 //SNIPER VARIABLES
 double LastHighest, LastLowest;
 bool SniperCockedHigh, SniperCockedLow, SniperCockedNeutral;
+double SniperDayValue;
 
 //********************************************************************************************************
 //-INPUT PARAMETERS-//
