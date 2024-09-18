@@ -1670,6 +1670,11 @@ void EvaluateSniper()
       SniperCockedNeutral = false;
 
       ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+      //ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0);
+      //ObjectCreate(0, "objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0,Time[0], Close[0]);
+      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , true);
+
+
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
       SniperObjectRunning++; 
@@ -2067,6 +2072,23 @@ void CheckSymmetry(int Idx, string command, int CndleStart)
    ObjectSet(ObjPrefix + "_" + ObjRunning, OBJPROP_STYLE, ObjStyle);
    ObjRunning++;
 } */
+
+void xstart(){
+    Trend_Line(Time[10],Time[0],Open[10],Open[0],Gold,STYLE_SOLID);
+}
+
+void Trend_Line(
+    datetime x1, datetime x2, double y1, 
+    double y2, color lineColor, double style){
+    //~~~~~~~~~~
+    string label = "_Trend_Line_";
+    ObjectDelete(label);
+    ObjectCreate(label, OBJ_TREND, 0, x1, y1, x2, y2, 0, 0);
+    ObjectSet(label, OBJPROP_RAY, 0);
+    ObjectSet(label, OBJPROP_COLOR, lineColor);
+    ObjectSet(label, OBJPROP_STYLE, style);
+    //~~~~~~~~~~
+}
 
 //********************************************************************************************************
 
