@@ -454,15 +454,6 @@ void EvaluateEntry()
       //evaluate symmetry
       EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
 
-      /* //if trading hours are limited and the current hour is allowed
-      if (UseTradingHours && IsOperatingHours)
-      {
-         //evaluate the sniper
-         EvaluateSniper();
-         //evaluate symmetry
-         EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
-      }  */
-
       StartupFlag = true;
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
    }
@@ -473,7 +464,7 @@ void EvaluateEntry()
    { 
       // evaluate for a signal entry
       //SignalEntry = ReturnSignalEntryToEvaluateEntry();
-      GetCandleZeroIndicatorData();
+      SetCandleZeroIndicatorData();
    }
 
    Comment(SettingsComments + CandleComments + PipComments); 
@@ -1132,7 +1123,7 @@ ENUM_SIGNAL_EXIT ReturnSignalExitToEvaluateExit()
    return SignalExit;
 }
 
-void GetCandleZeroIndicatorData()
+void SetCandleZeroIndicatorData()
 {
    //copy the index zero of the CombinedHistory to CombinedHistoryPrev
    //it is used to compare the last tick to the current tick
