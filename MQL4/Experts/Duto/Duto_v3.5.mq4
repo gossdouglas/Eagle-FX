@@ -143,7 +143,7 @@ input double BarCountThreshold = 20;  // Bar Count Threshold
 input int LookBackCount = 20;
 input ENUM_EXIT_PLOT TradeExitPlot = 6; // Trade Exit Plot
 // Allow Entry if the plots are dark but favorable
-input bool AllowStrat2Dark = true; //Allow Strat Dark
+input bool AllowStrat2Dark = false; //Allow Strat Dark
 input int TradePendingTimeout = 5; //Trade Pending Timeout
 input double TradePendingMacdSP = .9;
 
@@ -438,11 +438,6 @@ void EvaluateEntry()
    // whether a new candle has been started is based on the chart that is shown
    if (IsNewCandle)
    {
-      //Print("Number of bars to process: " + Bars);
-      WriteTextToRight();
-
-      //Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
-
       // Re-initialize the EA candle comments at every new candle
       InitializeEACandleComments();
 
@@ -450,33 +445,25 @@ void EvaluateEntry()
       LogIndicatorData();
       //evaluate for a strategy
       DutoWind_SelectedStrategy();
+      //
+      EvaluateLastHighestLowest();
+      WriteTextToRight();
+
       //evaluate the sniper
       EvaluateSniper();
+      //evaluate symmetry
+      EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
 
-      //find the last highest and lowest
-      LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
-      LastLowest =GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1);
-
-      if (BuyTradesValid || SellTradesValid)
+      /* //if trading hours are limited and the current hour is allowed
+      if (UseTradingHours && IsOperatingHours)
       {
-         TradePendingTimeoutCount--;
-      }
-
-      CandleComments = CandleComments + 
-      "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
-
-      if (
-         //change from bright red to dark red
-         AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED"     
-      )
-      {
-         CheckSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
-      }
-
-      CandleColorHowLong(UpperTimeFrame + 10 + 6, "BR_RED", 1);
+         //evaluate the sniper
+         EvaluateSniper();
+         //evaluate symmetry
+         EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
+      }  */
 
       StartupFlag = true;
-
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
    }
 
@@ -489,10 +476,7 @@ void EvaluateEntry()
       GetCandleZeroIndicatorData();
    }
 
-   //PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n";
-
    Comment(SettingsComments + CandleComments + PipComments); 
-   //Comment("MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n");
 }
 
 // Execute entry if there is an entry signal
@@ -1101,6 +1085,15 @@ void InitializeEASettingsComments()
    SettingsComments = SettingsComments + "Exit Plot : " + str + "\n";
    SettingsComments = SettingsComments + "Allow Strat Dark : " + AllowStrat2Dark + "\n";
 
+   if (UseTradingHours)
+   {
+      SettingsComments = SettingsComments + "Valid Trading Hours : " + TradingHourStart + "-" +  + TradingHourEnd + "\n";
+   }
+   else
+   {
+      SettingsComments = SettingsComments + "Valid Trading Hours : ALL" + "\n";
+   }
+
    Comment(SettingsComments);  
 }
 
@@ -1268,7 +1261,7 @@ void GetCandleZeroIndicatorData()
    PipComments = PipComments + "M5 MACD Candle 0 Curr: " + CombinedHistory[0][UpperTimeFrame + 10 + 6] + "\n";
    PipComments = PipComments + "MACD > 0: " + (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) + "\n"; */
 
-   PipComments = PipComments + "Sniper Candle 2 M5: " + CombinedHistory[2][42] + "\n";
+   /* PipComments = PipComments + "Sniper Candle 2 M5: " + CombinedHistory[2][42] + "\n";
    PipComments = PipComments + "Sniper Candle 1 M1: " + CombinedHistory[1][43] + "\n";
    PipComments = PipComments + "Sniper Candle 0 M5: " + CombinedHistory[0][42] + "\n";
 
@@ -1279,7 +1272,7 @@ void GetCandleZeroIndicatorData()
    if (CombinedHistory[1][43] < CombinedHistory[2][42])
    {
       PipComments = PipComments + "Sniper Creepin Down \n";   
-   }
+   } */
 }
 
 void LogIndicatorData()
@@ -1669,13 +1662,9 @@ void EvaluateSniper()
       SniperCockedLow = false;
       SniperCockedNeutral = false;
 
-      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_VLINE, 0, Time[0], 0);
-      //ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0);
-      //ObjectCreate(0, "objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0,Time[0], Close[0]);
-      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , true);
-
-
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
+      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrDarkOliveGreen);
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
       SniperObjectRunning++; 
    }
@@ -1689,8 +1678,9 @@ void EvaluateSniper()
       SniperCockedLow = true;
       SniperCockedNeutral = false; 
 
-      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_VLINE, 0, Time[0], 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrFireBrick);
+      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLightCoral);
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
       SniperObjectRunning++;    
    }
@@ -2011,54 +2001,69 @@ void WriteTextToRight()
 
 }
 
-void CheckSymmetry(int Idx, string command, int CndleStart)
+void EvaluateSymmetry(int Idx, string command, int CndleStart)
 {
-   int numBrRdCandles, numDkGrCandles, numBrGrCandles, numDkRdCandles;
-
-   if (command == "BUY_BR_RED_DK_RED")
-   {
-      numBrRdCandles = CandleColorHowLong(Idx, "BR_RED", CndleStart);
-      numDkGrCandles = CandleColorHowLong(Idx, "DK_GREEN", numBrRdCandles + CndleStart) - 1; 
-      numBrGrCandles = CandleColorHowLong(Idx, "BR_GREEN", numBrRdCandles + numDkGrCandles + CndleStart);
-      numDkRdCandles = CandleColorHowLong(Idx, "DK_RED", numBrRdCandles + numDkGrCandles + numBrGrCandles + CndleStart) - 1;
-
-      /* Print("numBrRdCandles: " + numBrRdCandles);
-      Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
-
-      Print("numDkGrCandles: " + numDkGrCandles);
-      Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
-
-      Print("numBrGrCandles: " + numBrGrCandles);
-      Print("Last BrGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles][UpperTimeFrame + 10 + 6]);
-
-      Print("numDkRdCandles: " + numDkRdCandles);
-      Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]); */
-
-      if(
-         (numBrRdCandles >= 3)
-         && (numDkGrCandles >= 1)
-         && (numBrGrCandles >= 1)
-         //&& (numDkRdCandles >= 1)
-      )
+   //change from bright red to dark red
+   if (AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED")
       {
-      Print("numBrRdCandles: " + numBrRdCandles);
-      Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
-         
-      Print("numDkGrCandles: " + numDkGrCandles);
-      Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
+         int numBrRdCandles, numDkGrCandles, numBrGrCandles, numDkRdCandles;
 
-      Print("numBrGrCandles: " + numBrGrCandles);
-      Print("Last BrGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles][UpperTimeFrame + 10 + 6]);
+         if (command == "BUY_BR_RED_DK_RED")
+         {
+            numBrRdCandles = CandleColorHowLong(Idx, "BR_RED", CndleStart);
+            numDkGrCandles = CandleColorHowLong(Idx, "DK_GREEN", numBrRdCandles + CndleStart) - 1; 
+            numBrGrCandles = CandleColorHowLong(Idx, "BR_GREEN", numBrRdCandles + numDkGrCandles + CndleStart);
+            numDkRdCandles = CandleColorHowLong(Idx, "DK_RED", numBrRdCandles + numDkGrCandles + numBrGrCandles + CndleStart) - 1;
 
-      Print("numDkRdCandles: " + numDkRdCandles);
-      Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]);
+            /* Print("numBrRdCandles: " + numBrRdCandles);
+            Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
 
-      ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
-      ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
-      ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
-      SymmetryObjectRunning++; 
-      }
-   } 
+            Print("numDkGrCandles: " + numDkGrCandles);
+            Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
+
+            Print("numBrGrCandles: " + numBrGrCandles);
+            Print("Last BrGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles][UpperTimeFrame + 10 + 6]);
+
+            Print("numDkRdCandles: " + numDkRdCandles);
+            Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]); */
+
+            if(
+               (numBrRdCandles >= 3)
+               && (numDkGrCandles >= 3)
+               && (numBrGrCandles >=3)
+               && (numDkRdCandles >= 3)
+            )
+            {
+            /* Print("numBrRdCandles: " + numBrRdCandles);
+            Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
+               
+            Print("numDkGrCandles: " + numDkGrCandles);
+            Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
+
+            Print("numBrGrCandles: " + numBrGrCandles);
+            Print("Last BrGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles][UpperTimeFrame + 10 + 6]);
+
+            Print("numDkRdCandles: " + numDkRdCandles);
+            Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles 
+            + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]); */
+
+            ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+            ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
+            ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
+            SymmetryObjectRunning++; 
+            }
+         }         
+      }  
+}
+
+void EvaluateLastHighestLowest()
+{
+   //find the last highest and lowest
+   LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
+   LastLowest = GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1);
+
+   CandleComments = CandleComments + 
+   "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
 }
 
 /* DrawDutoObject("objSymmetryObject", SymmetryObjectRunning, 
