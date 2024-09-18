@@ -197,9 +197,7 @@ double BrightTickCount, DarkTickCount;
 string indicatorName = "_Custom\\Duto\\macd_color_indicator_plot1_v0.11";
 string duto_chart_indicators = "_Custom\\Duto\\duto_chart_indicators_v0.6";
 string duto_chart_moving_averages = "_Custom\\Duto\\duto_mas";
-string duto_chart_deltas = "_Custom\\Duto\\delta_v0.1";
 
-string duto_sniper = "_Custom\\Duto\\Sniper_v1";
 string SniperBlue = "_Custom\\Duto\\SniperBlue";
 string SniperPink = "_Custom\\Duto\\SniperPink";
 string SniperPurple = "_Custom\\Duto\\SniperPurple";
@@ -462,9 +460,11 @@ void EvaluateEntry()
    if (StartupFlag == true && IsSpreadOK && !IsTradedThisBar 
       && (!TotalOpenOrders > 0))
    { 
-      // evaluate for a signal entry
-      //SignalEntry = ReturnSignalEntryToEvaluateEntry();
+      //set candle 0 data on each pip
       SetCandleZeroIndicatorData();
+      // evaluate for a signal entry
+      SignalEntry = ReturnSignalEntryToEvaluateEntry();
+      
    }
 
    Comment(SettingsComments + CandleComments + PipComments); 
@@ -1106,7 +1106,8 @@ ENUM_SIGNAL_ENTRY ReturnSignalEntryToEvaluateEntry()
    SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
    //check for an entry
-   SignalEntry = DutoWind_2StrategyEntry();
+   //SignalEntry = DutoWind_2StrategyEntry();
+   SignalEntry = SniperEntry();
 
    return SignalEntry;
 }
@@ -1118,7 +1119,8 @@ ENUM_SIGNAL_EXIT ReturnSignalExitToEvaluateExit()
    SignalExit = SIGNAL_EXIT_NEUTRAL;
 
    //check for an exit
-   SignalExit = DutoWind_2StrategyExit();
+   //SignalExit = DutoWind_2StrategyExit();
+   SignalExit = SniperExit();
 
    return SignalExit;
 }
@@ -1159,7 +1161,10 @@ void SetCandleZeroIndicatorData()
    //plot 4
    CombinedHistory[0][9] = iCustom(Symbol(),60, indicatorName, 3, 0);
    //sniper
-   CombinedHistory[0][40] = iCustom(Symbol(),60, duto_sniper, 0, 0);
+   //CombinedHistory[0][40] = iCustom(Symbol(),60, duto_sniper, 0, 0);
+   CombinedHistory[0][42] = iCustom(Symbol(),60, SniperBlue, 0, 0);
+   CombinedHistory[0][43] = iCustom(Symbol(),60, SniperPink, 0, 0);
+   CombinedHistory[0][44] = iCustom(Symbol(),60, SniperPurple, 0, 0);
 
    //15
    
@@ -1188,7 +1193,10 @@ void SetCandleZeroIndicatorData()
    //plot 4
    CombinedHistory[0][19] = iCustom(Symbol(),15, indicatorName, 3, 0);
    //sniper
-   CombinedHistory[0][41] = iCustom(Symbol(),15, duto_sniper, 0, 0);
+   //CombinedHistory[0][41] = iCustom(Symbol(),15, duto_sniper, 0, 0);
+   CombinedHistory[0][47] = iCustom(Symbol(),15, SniperBlue, 0, 0);
+   CombinedHistory[0][48] = iCustom(Symbol(),15, SniperPink, 0, 0);
+   CombinedHistory[0][49] = iCustom(Symbol(),15, SniperPurple, 0, 0);
 
    //5
    
@@ -1217,7 +1225,10 @@ void SetCandleZeroIndicatorData()
    //plot 4
    CombinedHistory[0][29] = iCustom(Symbol(),5, indicatorName, 3, 0);
    //sniper
-   CombinedHistory[0][42] = iCustom(Symbol(),5, duto_sniper, 0, 0);
+   //CombinedHistory[0][42] = iCustom(Symbol(),5, duto_sniper, 0, 0);
+   CombinedHistory[0][52] = iCustom(Symbol(),5, SniperBlue, 0, 0);
+   CombinedHistory[0][53] = iCustom(Symbol(),5, SniperPink, 0, 0);
+   CombinedHistory[0][54] = iCustom(Symbol(),5, SniperPurple, 0, 0);
 
    //1
    
@@ -1246,7 +1257,10 @@ void SetCandleZeroIndicatorData()
    //plot 4
    CombinedHistory[0][39] = iCustom(Symbol(),1, indicatorName, 3, 0);
    //sniper
-   CombinedHistory[0][42] = iCustom(Symbol(),1, duto_sniper, 0, 0);
+   //CombinedHistory[0][42] = iCustom(Symbol(),1, duto_sniper, 0, 0);
+   CombinedHistory[0][57] = iCustom(Symbol(),1, SniperBlue, 0, 0);
+   CombinedHistory[0][58] = iCustom(Symbol(),1, SniperPink, 0, 0);
+   CombinedHistory[0][59] = iCustom(Symbol(),1, SniperPurple, 0, 0);
 
    /* PipComments = PipComments + "M5 MACD Candle 0 Prev: " + CombinedHistoryPrev[0][UpperTimeFrame + 10 + 6] + "\n";
    PipComments = PipComments + "M5 MACD Candle 0 Curr: " + CombinedHistory[0][UpperTimeFrame + 10 + 6] + "\n";
@@ -2038,7 +2052,9 @@ void EvaluateSymmetry(int Idx, string command, int CndleStart)
             Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles 
             + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]); */
 
-            ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+            //ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+            ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+            ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_RAY , 0);
             ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
             ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
             SymmetryObjectRunning++; 
@@ -2055,6 +2071,114 @@ void EvaluateLastHighestLowest()
 
    CandleComments = CandleComments + 
    "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
+}
+
+string AskThePlotsColorChange(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   //STRATEGY LOGIC
+ 
+   //BUY STRATEGY, DARK GREEN TO BRIGHT GREEN
+   if (
+      OverallStrategy == "BUY_DK_GREEN_BR_GREEN"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
+      result = "PLOT INCREASING DARK GREEN TO BRIGHT GREEN"; 
+   }
+   else
+   //SELL STRATEGY, BRIGHT GREEN TO DARK GREEN
+   if (
+      OverallStrategy == "SELL_BR_GREEN_DK_GREEN"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive
+      && CombinedHistory[CndleStart][Idx] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("ask the plots PLOT DECREASING BRIGHT GREEN TO DARK GREEN");
+      result = "PLOT DECREASING BRIGHT GREEN TO DARK GREEN";
+   }
+   else
+   //SELL STRATEGY, DARK GREEN TO BRIGHT RED
+   if (
+      OverallStrategy == "SELL_DK_GREEN_BR_RED"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is negative, candle 2 is positive, candle 3 is positive
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0 && CombinedHistory[CndleStart + 2][Idx] > 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT DECREASING DARK GREEN TO BRIGHT RED");
+      result = "PLOT DECREASING DARK GREEN TO BRIGHT RED";
+   }
+   //BUY STRATEGY, BRIGHT RED TO DARK RED
+   if (
+      OverallStrategy == "BUY_BR_RED_DK_RED"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 less than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is negative, candle 2 is negative, candle 3 is negative
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT INCREASING BRIGHT RED TO DARK RED");
+      result = "PLOT INCREASING BRIGHT RED TO DARK RED";
+   }
+   //SELL STRATEGY, DARK RED TO BRIGHT RED
+   if (
+      OverallStrategy == "SELL_DK_RED_BR_RED"
+
+      //candle 1 less than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is negative, candle 2 is negative, candle 3 is negative
+      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT DECREASING DARK RED TO BRIGHT RED");
+      result = "PLOT DECREASING DARK RED TO BRIGHT RED";
+   }
+   //BUY STRATEGY, DARK RED TO BRIGHT GREEN
+   if (
+      OverallStrategy == "BUY_DK_RED_BR_GREEN"
+
+      //candle 1 greater than or equal to candle 2
+      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
+      //candle 2 greater than or equal to candle 3
+      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
+      //candle 1 is positive, candle 2 is negative, candle 3 is negative
+      && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+      )
+   {
+      CurrentStrategy = OverallStrategy; 
+      //Print("TEST TEST PLOT INCREASING DARK RED TO BRIGHT GREEN");
+      result = "PLOT INCREASING DARK RED TO BRIGHT GREEN";
+   }
+
+   return result;
 }
 
 /* DrawDutoObject("objSymmetryObject", SymmetryObjectRunning, 
@@ -2095,7 +2219,8 @@ void Trend_Line(
 //execute the selected strategy
 void DutoWind_SelectedStrategy()
 {
-   DutoWind_2Strategy();
+   //DutoWind_2Strategy();
+   SniperStrategy();
    CandleComments = CandleComments + "Current Strategy : " + CurrentStrategy + "\n";
 }
 
@@ -2558,109 +2683,316 @@ string AskThePlots2StrategyExit(int Idx, int CndleStart, int CmbndHstryCandleLen
    return result;
 }
 
-string AskThePlotsColorChange(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+void SniperStrategy()
+{
+   CurrentStrategy = "";
+
+   //BUY SNIPER
+   if (SniperCockedHigh == true
+      && SniperCockedLow == false
+      && SniperCockedNeutral == false)
+   {
+      SellStrategyActive = false;
+      BuyStrategyActive = true;
+      NeutralStrategyActive = false;
+
+      //SellSafetyTrade2Strategy = false;
+      //BuySafetyTrade2Strategy = true;
+      //NeutralSafetyTrade2Strategy = false;
+
+      CurrentStrategy ="Sniper Buy";
+
+      //close all sell trades
+      //CloseAll(OP_SELL);
+
+      Print("SNIPER BUY STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+      + " NeutralStrategyActive: " + NeutralStrategyActive);
+      //Print("BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy);     
+   }
+
+   //SELL SNIPER
+   if (SniperCockedHigh == false
+      && SniperCockedLow == true
+      && SniperCockedNeutral == false)
+   {
+      SellStrategyActive = true;
+      BuyStrategyActive = false;
+      NeutralStrategyActive = false;
+
+      //SellSafetyTrade2Strategy = true;
+      //BuySafetyTrade2Strategy = false;
+      //NeutralSafetyTrade2Strategy = false;
+
+      CurrentStrategy ="Sniper Sell";
+
+      //close all buy trades
+      //CloseAll(OP_BUY);
+
+      Print("SNIPER SELL STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+      + " NeutralStrategyActive: " + NeutralStrategyActive);
+      //Print("SellSafetyTrade2Strategy: " + SellSafetyTrade2Strategy);    
+   }
+
+   //NEUTRAL SNIPER
+   if (SniperCockedHigh == false
+      && SniperCockedLow == false
+      && SniperCockedNeutral == true 
+      )
+   {
+      BuyTradesValid = false;
+      SellTradesValid = false;
+      
+      SellStrategyActive = false;
+      BuyStrategyActive = false;
+      NeutralStrategyActive = true;
+
+      //SellSafetyTrade2Strategy = true;
+      //BuySafetyTrade2Strategy = false;
+      //NeutralSafetyTrade2Strategy = true;
+
+      CurrentStrategy ="Sniper Neutral";
+
+      //close all trades
+      //CloseAll(OP_ALL);
+
+      /* Print("SNIPER NEUTRAL STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+      + " NeutralStrategyActive: " + NeutralStrategyActive); */
+      //Print("NeutralSafetyTrade2Strategy: " + NeutralSafetyTrade2Strategy);   
+   }
+}
+
+ENUM_SIGNAL_ENTRY SniperEntry()
+{
+   //ENTRY LOGIC
+
+   //don't allow new trades to be made outside of the selected trading hours
+   if (UseTradingHours && !IsOperatingHours)
+   {
+      //Print("DutoWind_2StrategyEntry: UseTradingHours && !IsOperatingHours");
+      SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+      return SignalEntry; // If you are using trading hours and it's not a trading hour don't give an entry signal
+   } 
+
+   //BUY ENTRY //ACTIVE 
+   if (
+         //(AskThePlotsSniperEntry(53, 1, 1, "BUY_SNIPER_ENTRY") == "ENTER A SNIPER TRADE BUY")
+         (AskThePlotsSniperEntry(58, 1, 1, "BUY_SNIPER_ENTRY") == "ENTER A SNIPER TRADE BUY")
+         && SniperCockedHigh == true
+         && BuyStrategyActive == true 
+         && BuyTradeActive == false
+
+         //&& BuySafetyTrade2Strategy == true
+      )
+   {
+      //BuyTradesValid = true;
+      BuyTradeActive = true;
+
+      Print("ENTER A SNIPER TRADE BUY." +
+      "SellTradeActive: " + SellTradeActive + 
+      " BuyTradeActive: " + BuyTradeActive + 
+      " BuySafetyTrade2Strategy: " + BuySafetyTrade2Strategy);
+
+      EntryData[1][10] = Ask;
+      SignalEntry = SIGNAL_ENTRY_BUY;
+   }
+
+   //SELL ENTRY //ACTIVE
+  
+   if (
+         //(AskThePlotsSniperEntry(53, 1, 1, "SELL_SNIPER_ENTRY") == "ENTER A SNIPER TRADE SELL")
+         (AskThePlotsSniperEntry(58, 1, 1, "SELL_SNIPER_ENTRY") == "ENTER A SNIPER TRADE SELL")
+         && SniperCockedLow == true
+         && SellStrategyActive == true 
+         && SellTradeActive == false
+
+         //&& SellSafetyTrade2Strategy == true
+      )
+   {
+      //SellTradesValid = true;
+      SellTradeActive = true;
+
+      Print("ENTER A SNIPER TRADE SELL." +
+      "SellTradeActive: " + SellTradeActive + 
+      " BuyTradeActive: " + BuyTradeActive + 
+      " SellSafetyTrade2Strategy: " + SellSafetyTrade2Strategy);
+
+      EntryData[0][10] = Bid;
+      SignalEntry = SIGNAL_ENTRY_SELL;
+   }
+
+   //SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+
+   return SignalEntry;
+}
+
+ENUM_SIGNAL_EXIT SniperExit()
+{ 
+   //EXIT LOGIC
+
+   //ACTIVE
+   //BUY EXIT
+   if (
+      //AskThePlotsSniperExit(UpperTimeFrame + 10 + TradeExitPlot, 1, 1, "BUY_SNIPER_EXIT") == "EXIT A SNIPER TRADE BUY"
+      AskThePlotsSniperExit(UpperTimeFrame + 10 + 10 + TradeExitPlot, 1, 1, "BUY_SNIPER_EXIT") == "EXIT A SNIPER TRADE BUY"
+      //&& BuyStrategyActive == true 
+      && BuyTradeActive == true
+
+      //&& BuySafetyTrade2Strategy == true
+      //&& Bid > EntryData[1][10] //current price is greater than the price it was entered at
+      )
+   {
+      BuyTradeActive = false;
+
+      Print("Ask/EntryData[0][10] in BUY_ST_EXIT: " + Ask + "/" + EntryData[0][10]);
+      Print("EXIT A SNIPER TRADE BUY. SellStrategyActive: " + SellStrategyActive + 
+      " BuyStrategyActive: " + BuyStrategyActive);
+      
+      SignalExit = SIGNAL_EXIT_BUY;
+   }
+
+   //ACTIVE
+   //SELL EXIT
+   if (
+      //AskThePlotsSniperExit(UpperTimeFrame + 10 + TradeExitPlot, 1, 1, "SELL_SNIPER_EXIT") == "EXIT A SNIPER TRADE SELL"
+      AskThePlotsSniperExit(UpperTimeFrame + 10 + 10 + TradeExitPlot, 1, 1, "SELL_SNIPER_EXIT") == "EXIT A SNIPER TRADE SELL"
+      //&& SellStrategyActive == true 
+      && SellTradeActive == true
+
+      //&& SellSafetyTrade2Strategy == true
+      //&& Bid > EntryData[1][10] //current price is greater than the price it was entered at
+      )
+   {
+      SellTradeActive = false;
+      //BuyBrRdDkRdStrategyActive = false;
+
+      Print("Ask/EntryData[0][10] in SELL_SNIPER_EXIT: " + Ask + "/" + EntryData[0][10]);
+      Print("EXIT A SNIPER TRADE SELL. SellStrategyActive: " + SellStrategyActive + 
+      " BuyStrategyActive: " + BuyStrategyActive);
+      
+      SignalExit = SIGNAL_EXIT_SELL;
+   }
+
+   //SignalExit = SIGNAL_EXIT_NEUTRAL;
+
+   return SignalExit;
+}
+
+string AskThePlotsSniperEntry(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
 
-   //STRATEGY LOGIC
- 
-   //BUY STRATEGY, DARK GREEN TO BRIGHT GREEN
-   if (
-      OverallStrategy == "BUY_DK_GREEN_BR_GREEN"
+   /* Print("Idx: " + Idx);
+   Print("CombinedHistory[CndleStart][Idx]: " + CombinedHistory[CndleStart][Idx]);
+   Print("CombinedHistory[CndleStart + 1][Idx]: " + CombinedHistory[CndleStart + 1][Idx]); */
 
-      //candle 1 greater than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
-      //candle 2 less than or equal to candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is positive
-      && CombinedHistory[CndleStart][Idx] > 0
+   //ENTRY LOGIC
+
+   //ACTIVE
+   //BUY ENTRY SAFETY TRADE
+   if (
+      BuyStrategyActive == true 
+      && OverallStrategy == "BUY_SNIPER_ENTRY"
+      && SniperCockedHigh == true
+      //&& BuySafetyTrade2Strategy == true
+
+      //enter on sniper pink is increasing
+      && CombinedHistory[CndleStart][Idx] >  CombinedHistory[CndleStart + 1][Idx]
+      //and the last candle was less than or equal to 1
+      && CombinedHistory[CndleStart + 1][Idx] <= 1
       )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT INCREASING DARK GREEN TO BRIGHT GREEN");
-      result = "PLOT INCREASING DARK GREEN TO BRIGHT GREEN"; 
+   { 
+      //Print(result);
+      result = "ENTER A SNIPER TRADE BUY";
    }
-   else
-   //SELL STRATEGY, BRIGHT GREEN TO DARK GREEN
-   if (
-      OverallStrategy == "SELL_BR_GREEN_DK_GREEN"
 
-      //candle 1 less than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
-      //candle 2 greater than or equal to candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is positive
-      && CombinedHistory[CndleStart][Idx] > 0
+   //ACTIVE
+   //SELL ENTRY SAFETY TRADE
+   if (
+      SellStrategyActive == true 
+      && OverallStrategy == "SELL_SNIPER_ENTRY"
+      && SniperCockedLow == true
+      //&& SellSafetyTrade2Strategy == true
+
+      //enter on sniper pink is decreasing
+      && CombinedHistory[CndleStart][Idx] <  CombinedHistory[CndleStart + 1][Idx]
+      //and the last candle was less than or equal to 1
+      && CombinedHistory[CndleStart + 1][Idx] >= 99
       )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("ask the plots PLOT DECREASING BRIGHT GREEN TO DARK GREEN");
-      result = "PLOT DECREASING BRIGHT GREEN TO DARK GREEN";
+   {  
+      result = "ENTER A SNIPER TRADE SELL";
    }
-   else
-   //SELL STRATEGY, DARK GREEN TO BRIGHT RED
-   if (
-      OverallStrategy == "SELL_DK_GREEN_BR_RED"
 
-      //candle 1 less than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
-      //candle 2 less than or equal to candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is negative, candle 2 is positive, candle 3 is positive
-      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] > 0 && CombinedHistory[CndleStart + 2][Idx] > 0
+   return result;
+}
+
+string AskThePlotsSniperExit(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
+{
+   string result = "";
+
+   Print("Idx: " + Idx);
+   Print("CombinedHistory[CndleStart][Idx]: " + CombinedHistory[CndleStart][Idx]);
+   Print("CombinedHistory[CndleStart + 1][Idx]: " + CombinedHistory[CndleStart + 1][Idx]);
+   Print("CombinedHistory[CndleStart + 2][Idx]: " + CombinedHistory[CndleStart + 2][Idx]);
+   Print((CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
+         && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]
+
+         //commented out the bid/ask restriction so I can exit early
+         //if the macd goes bad
+         && Bid > EntryData[1][10]
+         && CombinedHistory[CndleStart][Idx] > 0));
+
+   //EXIT LOGIC
+
+   //BUY EXIT SAFETY TRADE
+   if (
+      OverallStrategy == "BUY_SNIPER_EXIT" 
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
+            && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]
+
+            //commented out the bid/ask restriction so I can exit early
+            //if the macd goes bad
+            && Bid > EntryData[1][10]
+            && CombinedHistory[CndleStart][Idx] > 0)
+         ||
+            //
+            (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] 
+            < CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6])
+         /* ||
+            //exit if the macd turns to avoid losses
+            (CombinedHistory[0][UpperTimeFrame + 10 + 6] < 0) */
+         )
       )
    {
-      CurrentStrategy = OverallStrategy; 
-      //Print("TEST TEST PLOT DECREASING DARK GREEN TO BRIGHT RED");
-      result = "PLOT DECREASING DARK GREEN TO BRIGHT RED";
+      //Print("EXIT A SNIPER TRADE BUY");
+      result = "EXIT A SNIPER TRADE BUY";
    }
-   //BUY STRATEGY, BRIGHT RED TO DARK RED
-   if (
-      OverallStrategy == "BUY_BR_RED_DK_RED"
 
-      //candle 1 greater than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
-      //candle 2 less than or equal to candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is negative, candle 2 is negative, candle 3 is negative
-      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
+   //SELL EXIT SAFETY TRADE
+   if (
+      OverallStrategy == "SELL_SNIPER_EXIT" 
+
+      && 
+         (  //typical take profit exit
+            (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx] 
+            //commented out the bid/ask restriction so I can exit early
+            //if the macd goes bad
+            && Ask < EntryData[0][10]
+            && CombinedHistory[CndleStart][Idx] < 0)
+         ||
+            //
+            (CombinedHistory[CndleStart][UpperTimeFrame + 10 + 6] 
+            > CombinedHistory[CndleStart + 1][UpperTimeFrame + 10 + 6])
+         /* ||
+            //exit if the macd turns to avoid losses
+            (CombinedHistory[0][UpperTimeFrame + 10 + 6] > 0) */
+         )
       )
    {
-      CurrentStrategy = OverallStrategy; 
-      //Print("TEST TEST PLOT INCREASING BRIGHT RED TO DARK RED");
-      result = "PLOT INCREASING BRIGHT RED TO DARK RED";
-   }
-   //SELL STRATEGY, DARK RED TO BRIGHT RED
-   if (
-      OverallStrategy == "SELL_DK_RED_BR_RED"
-
-      //candle 1 less than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) <= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
-      //candle 2 greater than or equal to candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is negative, candle 2 is negative, candle 3 is negative
-      && CombinedHistory[CndleStart][Idx] < 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
-      )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("TEST TEST PLOT DECREASING DARK RED TO BRIGHT RED");
-      result = "PLOT DECREASING DARK RED TO BRIGHT RED";
-   }
-   //BUY STRATEGY, DARK RED TO BRIGHT GREEN
-   if (
-      OverallStrategy == "BUY_DK_RED_BR_GREEN"
-
-      //candle 1 greater than or equal to candle 2
-      && NormalizeDouble(CombinedHistory[CndleStart][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) 
-      //candle 2 greater than or equal to candle 3
-      && NormalizeDouble(CombinedHistory[CndleStart + 1][Idx] ,7) >= NormalizeDouble(CombinedHistory[CndleStart + 2][Idx] ,7) 
-      //candle 1 is positive, candle 2 is negative, candle 3 is negative
-      && CombinedHistory[CndleStart][Idx] > 0 && CombinedHistory[CndleStart + 1][Idx] < 0 && CombinedHistory[CndleStart + 2][Idx] < 0
-      )
-   {
-      CurrentStrategy = OverallStrategy; 
-      //Print("TEST TEST PLOT INCREASING DARK RED TO BRIGHT GREEN");
-      result = "PLOT INCREASING DARK RED TO BRIGHT GREEN";
+      //Print("Bid: " + Bid + " > EntryData[1][10]: " + EntryData[1][10]);
+      result = "EXIT A SNIPER TRADE SELL";
    }
 
    return result;
@@ -2671,4 +3003,5 @@ string AskThePlotsColorChange(int Idx, int CndleStart, int CmbndHstryCandleLengt
       && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]  */ 
 
 //END DUTO STRATEGY, ENTRY AND EXIT
+
 //===================================================
