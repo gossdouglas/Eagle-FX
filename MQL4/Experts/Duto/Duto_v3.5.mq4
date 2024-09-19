@@ -1657,7 +1657,6 @@ void EvaluateSniper()
       break;  
    }
 
-   //if (CombinedHistory[1][(40 + sniperIndex)] == 99)
    //blue sniper high, pink sniper low
    if (CombinedHistory[1][(sniperIndex + 2)] >= 99
       && CombinedHistory[1][(sniperIndex + 3)] <= 1)
@@ -1674,7 +1673,6 @@ void EvaluateSniper()
       SniperObjectRunning++; 
    }
    else
-   //if (CombinedHistory[1][(40 + sniperIndex)] == 0)
    if (CombinedHistory[1][(sniperIndex + 2)] <= 1
       && CombinedHistory[1][(sniperIndex + 3)] >= 99)
    {
@@ -1697,14 +1695,13 @@ void EvaluateSniper()
       str = "NEUTRAL";
    }
       
-   //CandleComments = CandleComments + "Sniper Upper Timeframe : " + CombinedHistory[1][(40 + sniperIndex)] + "\n";
    CandleComments = CandleComments + "Sniper Blue Upper Tframe : " + CombinedHistory[1][(sniperIndex + 2)] + "\n";
    CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";
    
    CandleComments = CandleComments + "Sniper Cocked : " + str + "\n";
-   CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
-   CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
-   CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
+   //CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
+   //CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
+   //CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
 
    
 }
@@ -2881,10 +2878,6 @@ string AskThePlotsSniperEntry(int Idx, int CndleStart, int CmbndHstryCandleLengt
 {
    string result = "";
 
-   /* Print("Idx: " + Idx);
-   Print("CombinedHistory[CndleStart][Idx]: " + CombinedHistory[CndleStart][Idx]);
-   Print("CombinedHistory[CndleStart + 1][Idx]: " + CombinedHistory[CndleStart + 1][Idx]); */
-
    //ENTRY LOGIC
 
    //ACTIVE
@@ -2928,18 +2921,6 @@ string AskThePlotsSniperEntry(int Idx, int CndleStart, int CmbndHstryCandleLengt
 string AskThePlotsSniperExit(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
 {
    string result = "";
-
-   Print("Idx: " + Idx);
-   Print("CombinedHistory[CndleStart][Idx]: " + CombinedHistory[CndleStart][Idx]);
-   Print("CombinedHistory[CndleStart + 1][Idx]: " + CombinedHistory[CndleStart + 1][Idx]);
-   Print("CombinedHistory[CndleStart + 2][Idx]: " + CombinedHistory[CndleStart + 2][Idx]);
-   Print((CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]
-         && CombinedHistory[CndleStart + 1][Idx] > CombinedHistory[CndleStart + 2][Idx]
-
-         //commented out the bid/ask restriction so I can exit early
-         //if the macd goes bad
-         && Bid > EntryData[1][10]
-         && CombinedHistory[CndleStart][Idx] > 0));
 
    //EXIT LOGIC
 
