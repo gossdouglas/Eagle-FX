@@ -450,7 +450,7 @@ void EvaluateEntry()
       //evaluate the sniper
       EvaluateSniper();
       //evaluate symmetry
-      EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
+      //EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
 
       StartupFlag = true;
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
@@ -1783,9 +1783,6 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
       ObjectSet("objLastHighest", OBJPROP_COLOR,clrSeaGreen);
       ObjectSet("objLastHighest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
 
-      /* CandleComments = CandleComments + 
-      "Last Highest: " + High[returnedCandle] + " at candle " + returnedCandle + "\n"; */
-
       result = High[returnedCandle];
    }
   else
@@ -1796,9 +1793,6 @@ double GetLastHighestLowest(string command, int timeframe, int timeseries, int c
       ObjectCreate("objLastLowest", OBJ_HLINE, 0, Time[0], Low[returnedCandle]);
       ObjectSet("objLastLowest", OBJPROP_COLOR, clrFireBrick);
       ObjectSet("objLastLowest", OBJPROP_STYLE, STYLE_DASHDOTDOT);
-
-      /* CandleComments = CandleComments + 
-      "Last Lowest: " + Low[returnedCandle] + " at candle " + returnedCandle + "\n"; */
 
       result = Low[returnedCandle];
    }
@@ -2066,8 +2060,8 @@ void EvaluateLastHighestLowest()
    LastHighest = GetLastHighestLowest("HIGHEST", 0, MODE_HIGH, LookBackCount, 1);
    LastLowest = GetLastHighestLowest("LOWEST", 0, MODE_LOW, LookBackCount, 1);
 
-   CandleComments = CandleComments + 
-   "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n";
+   /* CandleComments = CandleComments + 
+   "Last Highest: " + LastHighest + "--Last Lowest: " + LastLowest + "\n"; */
 }
 
 string AskThePlotsColorChange(int Idx, int CndleStart, int CmbndHstryCandleLength, string OverallStrategy)
