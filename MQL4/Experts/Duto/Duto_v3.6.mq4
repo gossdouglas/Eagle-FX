@@ -446,7 +446,7 @@ void EvaluateEntry()
       //set candle 0 data on each pip
       SetCandleZeroIndicatorData();
       // evaluate for a signal entry
-      SignalEntry = ReturnSignalEntryToEvaluateEntry(); 
+      //SignalEntry = ReturnSignalEntryToEvaluateEntry(); 
    }
 
    //write out the comment section
@@ -1616,8 +1616,10 @@ void EvaluateSniper()
    }
 
    //blue sniper high, pink sniper low
-   if (CombinedHistory[1][(sniperIndex + 2)] >= 99
-      && CombinedHistory[1][(sniperIndex + 3)] <= 1)
+   if (
+      CombinedHistory[1][(sniperIndex + 2)] >= 99
+      //&& CombinedHistory[1][(sniperIndex + 3)] <= 1
+      )
    {
       str = "HIGH";
       SniperCockedHigh = true;
@@ -1631,8 +1633,12 @@ void EvaluateSniper()
       SniperObjectRunning++; 
    }
    else
-   if (CombinedHistory[1][(sniperIndex + 2)] <= 1
-      && CombinedHistory[1][(sniperIndex + 3)] >= 99)
+   //blue sniper low, pink sniper high
+   if (
+      CombinedHistory[1][(sniperIndex + 2)] <= 1
+      /* CombinedHistory[1][(sniperIndex + 2)] <= 1
+      && CombinedHistory[1][(sniperIndex + 3)] >= 99 */
+      )
    {
       str = "LOW";
       SniperCockedHigh = false;
