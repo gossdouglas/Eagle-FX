@@ -1618,7 +1618,7 @@ void EvaluateSniper()
    //blue sniper high, pink sniper low
    if (
       CombinedHistory[1][(sniperIndex + 2)] >= 99
-      //&& CombinedHistory[1][(sniperIndex + 3)] <= 1
+      && CombinedHistory[1][(sniperIndex + 3)] <= 1
       )
    {
       str = "HIGH";
@@ -1626,18 +1626,21 @@ void EvaluateSniper()
       SniperCockedLow = false;
       SniperCockedNeutral = false;
 
-      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrDarkOliveGreen);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-      SniperObjectRunning++; 
+      if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
+      {
+         ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
+         SniperObjectRunning++; 
+      }     
    }
    else
    //blue sniper low, pink sniper high
    if (
+      //CombinedHistory[1][(sniperIndex + 2)] <= 1
       CombinedHistory[1][(sniperIndex + 2)] <= 1
-      /* CombinedHistory[1][(sniperIndex + 2)] <= 1
-      && CombinedHistory[1][(sniperIndex + 3)] >= 99 */
+      && CombinedHistory[1][(sniperIndex + 3)] >= 99
       )
    {
       str = "LOW";
@@ -1645,11 +1648,14 @@ void EvaluateSniper()
       SniperCockedLow = true;
       SniperCockedNeutral = false; 
 
-      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+      if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
+      {
+         ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLightCoral);
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-      SniperObjectRunning++;    
+      SniperObjectRunning++;   
+      }     
    }
    else
    {
@@ -1666,8 +1672,6 @@ void EvaluateSniper()
    //CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
    //CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
    //CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
-
-   
 }
 
 double BarColorCount (int Idx, string Command){
@@ -2319,8 +2323,8 @@ ENUM_SIGNAL_ENTRY SniperStrategyEntry()
 
    //BUY ENTRY //ACTIVE 
    if (
-         //(AskThePlotsSniperStrategyEntry(53, 1, 1, "BUY_SNIPER_ENTRY") == "ENTER A SNIPER TRADE BUY")
-         (AskThePlotsSniperStrategyEntry(58, 1, 1, "BUY_SNIPER_ENTRY") == "ENTER A SNIPER TRADE BUY")
+         (AskThePlotsSniperStrategyEntry(53, 1, 1, "BUY_SNIPER_ENTRY") == "ENTER A SNIPER TRADE BUY")
+         //(AskThePlotsSniperStrategyEntry(58, 1, 1, "BUY_SNIPER_ENTRY") == "ENTER A SNIPER TRADE BUY")
          && SniperCockedHigh == true
          && BuyStrategyActive == true 
          && BuyTradeActive == false
@@ -2343,8 +2347,8 @@ ENUM_SIGNAL_ENTRY SniperStrategyEntry()
    //SELL ENTRY //ACTIVE
   
    if (
-         //(AskThePlotsSniperStrategyEntry(53, 1, 1, "SELL_SNIPER_ENTRY") == "ENTER A SNIPER TRADE SELL")
-         (AskThePlotsSniperStrategyEntry(58, 1, 1, "SELL_SNIPER_ENTRY") == "ENTER A SNIPER TRADE SELL")
+         (AskThePlotsSniperStrategyEntry(53, 1, 1, "SELL_SNIPER_ENTRY") == "ENTER A SNIPER TRADE SELL")
+         //(AskThePlotsSniperStrategyEntry(58, 1, 1, "SELL_SNIPER_ENTRY") == "ENTER A SNIPER TRADE SELL")
          && SniperCockedLow == true
          && SellStrategyActive == true 
          && SellTradeActive == false
