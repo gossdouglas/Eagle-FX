@@ -1615,10 +1615,20 @@ void EvaluateSniper()
       break;  
    }
 
-   //blue sniper high, pink sniper low
+   /* //blue sniper high, pink sniper low
    if (
       CombinedHistory[1][(sniperIndex + 2)] >= 99
       && CombinedHistory[1][(sniperIndex + 3)] <= 1
+      ) */
+     //blue sniper high, pink sniper low
+   if (
+      CombinedHistory[1][(sniperIndex + 2)] >= 99
+      && 
+      (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 1) == 1
+      && CandleColorHowLong(UpperTimeFrame + 7, "GREEN", 1)
+      && CandleColorHowLong(UpperTimeFrame + 8, "GREEN", 1)
+      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 1)
+      )
       )
    {
       str = "HIGH";
@@ -1630,17 +1640,27 @@ void EvaluateSniper()
       {
          ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
          ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
+         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
          ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
          SniperObjectRunning++; 
       }     
    }
    else
    //blue sniper low, pink sniper high
-   if (
+   /* if (
       //CombinedHistory[1][(sniperIndex + 2)] <= 1
       CombinedHistory[1][(sniperIndex + 2)] <= 1
       && CombinedHistory[1][(sniperIndex + 3)] >= 99
+      ) */
+     if (
+      CombinedHistory[1][(sniperIndex + 2)] <= 1
+      && 
+      (CandleColorHowLong(UpperTimeFrame + 6, "RED", 1) == 1
+      && CandleColorHowLong(UpperTimeFrame + 7, "RED", 1)
+      && CandleColorHowLong(UpperTimeFrame + 8, "RED", 1)
+      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 1)
+      )
       )
    {
       str = "LOW";
@@ -1652,7 +1672,8 @@ void EvaluateSniper()
       {
          ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
+      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
+      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
       ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
       SniperObjectRunning++;   
       }     
@@ -1776,8 +1797,19 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
 {
    int count = 0;
 
+   if (command == "GREEN" && (CombinedHistory[CndleStart][Idx] > 0))
+   {
+         count++;
+
+         if (count > 0)
+         {
+            Print("GREEN Count: " + count);
+         }
+
+         return count;             
+   }
+
    //if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
-   //if (command == "BR_GREEN")
    if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx])
       && (CombinedHistory[CndleStart][Idx] > 0) && (CombinedHistory[CndleStart + 1][Idx] > 0))
    {
@@ -1799,7 +1831,6 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
    }
 
    //if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
-   //if (command == "DK_GREEN")
    if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx])
       && (CombinedHistory[CndleStart][Idx] > 0) && (CombinedHistory[CndleStart + 1][Idx] > 0))
    {
@@ -1819,7 +1850,19 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
 
          //Print("DK_GREEN Count: " + count);
    }
-  
+
+   if (command == "RED" && (CombinedHistory[CndleStart][Idx] < 0))
+   {
+         count++;
+
+         if (count > 0)
+         {
+            Print("RED Count: " + count);
+         }
+
+         return count;     
+   }
+
    //if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
    //if (command == "BR_RED")
    if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx])
@@ -2253,8 +2296,9 @@ void SniperStrategy()
       //close all sell trades
       //CloseAll(OP_SELL);
 
-      Print("SNIPER_BUY STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
-      + " NeutralStrategyActive: " + NeutralStrategyActive);
+      //Print("SNIPER_BUY STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+      //+ " NeutralStrategyActive: " + NeutralStrategyActive);
+
       //Print("BuySafetyTradeTraditionalStrategy: " + BuySafetyTradeTraditionalStrategy);     
    }
 
@@ -2276,8 +2320,9 @@ void SniperStrategy()
       //close all buy trades
       //CloseAll(OP_BUY);
 
-      Print("SNIPER_SELL STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
-      + " NeutralStrategyActive: " + NeutralStrategyActive);
+      //Print("SNIPER_SELL STRATEGY IN EFFECT. SellStrategyActive: " + SellStrategyActive + " BuyStrategyActive: " + BuyStrategyActive 
+      //+ " NeutralStrategyActive: " + NeutralStrategyActive);
+
       //Print("SellSafetyTradeTraditionalStrategy: " + SellSafetyTradeTraditionalStrategy);    
    }
 
