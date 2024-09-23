@@ -260,7 +260,12 @@ input int MaxSpread = 100;             // Maximum Allowed Spread To Trade In Poi
 //********************************************************************************************************
 
 bool IsPreChecksOk = false;      // Indicates if the pre checks are satisfied
+
 bool IsNewCandle = false;        // Indicates if this is a new candle formed
+bool IsNewCandleM15 = false; 
+bool IsNewCandleM5 = false; 
+bool IsNewCandleM1 = false; 
+
 bool IsSpreadOK = false;         // Indicates if the spread is low enough to trade
 bool IsOperatingHours = false;   // Indicates if it is possible to trade at the current time (server time)
 bool IsTradedThisBar = false;    // Indicates if an order was already executed in the current candle
@@ -403,7 +408,11 @@ void CheckPreChecks()
 // Initialize variables
 void InitializeVariables()
 {
-   IsNewCandle = false;
+   //IsNewCandle = false;
+   IsNewCandleM15 = false;
+   IsNewCandleM5 = false;
+   IsNewCandleM1 = false;
+
    IsTradedThisBar = false;
    IsOperatingHours = false;
    IsSpreadOK = false;
@@ -433,9 +442,19 @@ void EvaluateEntry()
    if (TotalOpenOrders > 0)
       return; // If there are already open orders and you don't want to open more */
 
-   // whether a new candle has been started is based on the chart that is shown
-   if (IsNewCandle)
+   if (IsNewCandleM5)
    {
+      //Print("IsNewCandleM5: " + IsNewCandleM5);
+      EvaluateSniper("M5 STATUS");
+   }
+
+   // whether a new candle has been started is based on the chart that is shown
+   //if (IsNewCandle)
+   if (IsNewCandleM1)
+   {
+      //Print("IsNewCandleM5: " + IsNewCandleM5);
+      //EvaluateSniper("M5 STATUS");
+      //Print("RunCandleTasks");
       RunCandleTasks();
    }
 
@@ -561,7 +580,8 @@ void EvaluateExit()
    SignalExit = SIGNAL_EXIT_NEUTRAL;
 
    // whether a new candle has been started is based on the chart that is shown
-   if (IsNewCandle)
+   //if (IsNewCandle)
+   if (IsNewCandleM1)
    {
       // Print("new candle in EvaluateEntry at: " + iTime(Symbol(), 1, 0));
       // log data and build the CombinedHistory array
@@ -735,7 +755,12 @@ void CheckOperationHours()
 
 ///*
 // Check if it is a new bar
-datetime NewBarTime = TimeCurrent();
+//datetime NewBarTime = TimeCurrent();
+
+datetime NewBarTimeM15 = TimeCurrent();
+datetime NewBarTimeM5 = TimeCurrent();
+datetime NewBarTimeM1 = TimeCurrent();
+
 void CheckNewBar()
 {
    /* Print("NewBarTime:" + NewBarTime);
@@ -743,13 +768,42 @@ void CheckNewBar()
 
    // NewBarTime contains the open time of the last bar known
    // if that open time is the same as the current bar then we are still in the current bar, otherwise we are in a new bar
-   if (NewBarTime == Time[0])
+   
+   /* if (NewBarTime == Time[0])
       IsNewCandle = false;
    else
    {
       NewBarTime = Time[0];
       IsNewCandle = true;
+   } */
+
+  if (NewBarTimeM15 == iTime(Symbol(), 15, 0))
+      IsNewCandleM15 = false;
+   else
+   {
+      NewBarTimeM15 = iTime(Symbol(), 15, 0);
+      IsNewCandleM15 = true;
    }
+
+   if (NewBarTimeM5 == iTime(Symbol(), 5, 0))
+      IsNewCandleM5 = false;
+   else
+   {
+      NewBarTimeM5 = iTime(Symbol(), 5, 0);
+      IsNewCandleM5 = true;
+   }
+
+   if (NewBarTimeM1 == iTime(Symbol(), 1, 0))
+      IsNewCandleM1 = false;
+   else
+   {
+      NewBarTimeM1 = iTime(Symbol(), 1, 0);
+      IsNewCandleM1 = true;
+   }
+
+   //Print("IsNewCandle: " + IsNewCandle);
+   //Print("Time[0]: " + Time[0]);
+   //Print("iTime(Symbol(), 1, i) : " + iTime(Symbol(), 1, 0));
 }
 ///*
 
@@ -1241,15 +1295,15 @@ void SetCandleZeroIndicatorData()
 void LogIndicatorData()
 {
    //if the file exists, then delete it so only the most recent data is included
-   if (FileIsExist("duto_indicator_data.csv")) {
+   if (FileIsExist("duto_indicator_data_" + Symbol() + ".csv")) {
 
-      FileDelete("duto_indicator_data.csv");
+      FileDelete("duto_indicator_data_" + Symbol() + ".csv");
    } 
 
-   FileCopy("duto_indicator_data_blank.csv", 0, "duto_indicator_data.csv", 0);
+   FileCopy("duto_indicator_data_blank.csv", 0, "duto_indicator_data_" + Symbol() + ".csv", 0);
 
    //open the file
-   fileHandleIndicatorData = FileOpen("duto_indicator_data.csv", FILE_BIN | FILE_READ | FILE_WRITE | FILE_CSV);
+   fileHandleIndicatorData = FileOpen("duto_indicator_data_" + Symbol() + ".csv", FILE_BIN | FILE_READ | FILE_WRITE | FILE_CSV);
 
    if (fileHandleIndicatorData < 1)
    {
@@ -1592,7 +1646,7 @@ void LogIndicatorData()
    FileClose(fileHandleIndicatorData); 
 }
 
-void EvaluateSniper()
+void EvaluateSniper(string command)
 {
    int sniperIndex;
    string str;
@@ -1615,19 +1669,25 @@ void EvaluateSniper()
       break;  
    }
 
-   /* //blue sniper high, pink sniper low
    if (
-      CombinedHistory[1][(sniperIndex + 2)] >= 99
-      && CombinedHistory[1][(sniperIndex + 3)] <= 1
-      ) */
-     //blue sniper high, pink sniper low
-   if (
-      CombinedHistory[1][(sniperIndex + 2)] >= 99
+      //M15 BLUE HIGH
+      CombinedHistory[0][(sniperIndex + 2)] >= 99
       && 
-      (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 1) == 1
-      && CandleColorHowLong(UpperTimeFrame + 7, "GREEN", 1)
-      && CandleColorHowLong(UpperTimeFrame + 8, "GREEN", 1)
-      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 1)
+      //M15 PLOTS ALL GREEN
+      (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0) == 1
+      && CandleColorHowLong(UpperTimeFrame + 7, "GREEN", 0) == 1
+      && CandleColorHowLong(UpperTimeFrame + 8, "GREEN", 0) == 1
+      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 0) == 1
+
+      //M5 PINK LOW
+      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
+
+      //M5 PLOTS 1 RED
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "RED", 1) == 1
+      //M5 PLOTS 2-3 GREEN
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 7, "GREEN", 1) == 1
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 8, "GREEN", 1) == 1
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 9, "GREEN", 1) == 1
       )
       )
    {
@@ -1640,28 +1700,35 @@ void EvaluateSniper()
       {
          ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
          ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
+         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
          ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-         SniperObjectRunning++; 
+         SniperObjectRunning++;
+
+         //SendNotification(Symbol() + " SNIPER COCKED HIGH.");   
       }     
    }
    else
-   //blue sniper low, pink sniper high
-   /* if (
-      //CombinedHistory[1][(sniperIndex + 2)] <= 1
-      CombinedHistory[1][(sniperIndex + 2)] <= 1
-      && CombinedHistory[1][(sniperIndex + 3)] >= 99
-      ) */
      if (
-      CombinedHistory[1][(sniperIndex + 2)] <= 1
+      //M15 BLUE LOW
+      CombinedHistory[0][(sniperIndex + 2)] <= 1
       && 
-      (CandleColorHowLong(UpperTimeFrame + 6, "RED", 1) == 1
-      && CandleColorHowLong(UpperTimeFrame + 7, "RED", 1)
-      && CandleColorHowLong(UpperTimeFrame + 8, "RED", 1)
-      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 1)
+      //M15 PLOTS ALL RED
+      (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) == 1
+      && CandleColorHowLong(UpperTimeFrame + 7, "RED", 0) == 1
+      && CandleColorHowLong(UpperTimeFrame + 8, "RED", 0) == 1
+      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 0) == 1
+
+      //M5 PINK HIGH
+      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
+      //M5 PLOTS 1 RED
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "GREEN", 1) == 1
+      //M5 PLOTS 2-3 GREEN
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 7, "GREEN", 1) == 1
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 8, "GREEN", 1) == 1
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 9, "GREEN", 1) == 1
       )
-      )
+     )
    {
       str = "LOW";
       SniperCockedHigh = false;
@@ -1671,11 +1738,13 @@ void EvaluateSniper()
       if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
       {
          ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-      SniperObjectRunning++;   
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
+         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
+         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
+         SniperObjectRunning++; 
+
+         //SendNotification(Symbol() + " SNIPER COCKED LOW.");  
       }     
    }
    else
@@ -1685,7 +1754,28 @@ void EvaluateSniper()
       SniperCockedNeutral = true;
       str = "NEUTRAL";
    }
-      
+
+   //M5 STATUS BUY FORMING
+   if (command == "M5 STATUS" 
+      && CombinedHistory[0][(sniperIndex + 2)] >= 95 
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] < CombinedHistory[1][(sniperIndex + 5 + 3)]
+   )
+   {
+      Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
+      SendNotification(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");   
+   }
+
+   //M5 STATUS SELL FORMING
+   if (command == "M5 STATUS"
+      && CombinedHistory[0][(sniperIndex + 2)] <= 5 
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]
+   )
+   {
+      //Print(CombinedHistory[1][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]);
+      Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
+      SendNotification(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");   
+   }
+
    CandleComments = CandleComments + "Sniper Blue Upper Tframe : " + CombinedHistory[1][(sniperIndex + 2)] + "\n";
    CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";
    
@@ -1803,7 +1893,7 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
 
          if (count > 0)
          {
-            Print("GREEN Count: " + count);
+            //Print("GREEN Count: " + count);
          }
 
          return count;             
@@ -1857,7 +1947,7 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
 
          if (count > 0)
          {
-            Print("RED Count: " + count);
+            //Print("RED Count: " + count);
          }
 
          return count;     
@@ -2276,7 +2366,7 @@ void SniperStrategy()
 {
    CurrentStrategy = "";
 
-   EvaluateSniper();//replace with ask the plots section?
+   EvaluateSniper("");//replace with ask the plots section?
 
    //BUY SNIPER
    if (SniperCockedHigh == true
