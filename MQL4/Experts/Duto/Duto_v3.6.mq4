@@ -456,6 +456,9 @@ void EvaluateEntry()
       //EvaluateSniper("M5 STATUS");
       //Print("RunCandleTasks");
       RunCandleTasks();
+
+      //Print("GREEN Count: " + CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0));
+      //Print("RED Count: " + CandleColorHowLong(UpperTimeFrame + 6, "RED", 0));
    }
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
@@ -1674,20 +1677,20 @@ void EvaluateSniper(string command)
       CombinedHistory[0][(sniperIndex + 2)] >= 99
       && 
       //M15 PLOTS ALL GREEN
-      (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0) == 1
-      && CandleColorHowLong(UpperTimeFrame + 7, "GREEN", 0) == 1
-      && CandleColorHowLong(UpperTimeFrame + 8, "GREEN", 0) == 1
-      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 0) == 1
+      (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 7, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 8, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 0) >= 1
 
       //M5 PINK LOW
-      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
 
-      //M5 PLOTS 1 RED
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "RED", 1) == 1
-      //M5 PLOTS 2-3 GREEN
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 7, "GREEN", 1) == 1
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 8, "GREEN", 1) == 1
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 9, "GREEN", 1) == 1
+      //M1 PLOTS 1 RED
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "RED", 1) >= 1
+      //M1 PLOTS 2-3 GREEN
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 7, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 8, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "GREEN", 0) >= 1
       )
       )
    {
@@ -1705,7 +1708,7 @@ void EvaluateSniper(string command)
          ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
          SniperObjectRunning++;
 
-         //SendNotification(Symbol() + " SNIPER COCKED HIGH.");   
+         SendNotification(Symbol() + " SNIPER COCKED HIGH. LOOK FOR A BUY");   
       }     
    }
    else
@@ -1714,19 +1717,20 @@ void EvaluateSniper(string command)
       CombinedHistory[0][(sniperIndex + 2)] <= 1
       && 
       //M15 PLOTS ALL RED
-      (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) == 1
-      && CandleColorHowLong(UpperTimeFrame + 7, "RED", 0) == 1
-      && CandleColorHowLong(UpperTimeFrame + 8, "RED", 0) == 1
-      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 0) == 1
+      (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 7, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 8, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 0) >= 1
 
       //M5 PINK HIGH
-      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
-      //M5 PLOTS 1 RED
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "GREEN", 1) == 1
-      //M5 PLOTS 2-3 GREEN
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 7, "GREEN", 1) == 1
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 8, "GREEN", 1) == 1
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 9, "GREEN", 1) == 1
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
+
+      //M1 PLOTS 1 RED
+      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "GREEN", 1) >= 1
+      //M1 PLOTS 2-3 GREEN
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 7, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 8, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "RED", 0) >= 1
       )
      )
    {
@@ -1744,7 +1748,7 @@ void EvaluateSniper(string command)
          ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
          SniperObjectRunning++; 
 
-         //SendNotification(Symbol() + " SNIPER COCKED LOW.");  
+         SendNotification(Symbol() + " SNIPER COCKED LOW.");  
       }     
    }
    else
@@ -1761,7 +1765,7 @@ void EvaluateSniper(string command)
       && CombinedHistory[0][(sniperIndex + 5 + 3)] < CombinedHistory[1][(sniperIndex + 5 + 3)]
    )
    {
-      Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
+      //Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
       SendNotification(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");   
    }
 
@@ -1772,7 +1776,7 @@ void EvaluateSniper(string command)
    )
    {
       //Print(CombinedHistory[1][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]);
-      Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
+      //Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
       SendNotification(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");   
    }
 
@@ -1887,16 +1891,22 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
 {
    int count = 0;
 
-   if (command == "GREEN" && (CombinedHistory[CndleStart][Idx] > 0))
+   if (command == "GREEN")
    {
-         count++;
-
-         if (count > 0)
+      do
+      { 
+         if (CombinedHistory[CndleStart][Idx] < 0)
          {
-            //Print("GREEN Count: " + count);
+            return count;
          }
+         else
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count][Idx] > 0
+         ); 
 
-         return count;             
+         return count;          
    }
 
    //if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
@@ -1941,16 +1951,22 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          //Print("DK_GREEN Count: " + count);
    }
 
-   if (command == "RED" && (CombinedHistory[CndleStart][Idx] < 0))
+   if (command == "RED")
    {
-         count++;
-
-         if (count > 0)
+      do
+      { 
+         if (CombinedHistory[CndleStart][Idx] > 0)
          {
-            //Print("RED Count: " + count);
+            return count;
          }
+         else
+         count++;
+      } 
+      while(
+         CombinedHistory[CndleStart + count][Idx] < 0
+         ); 
 
-         return count;     
+         return count;          
    }
 
    //if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
