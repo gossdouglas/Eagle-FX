@@ -435,8 +435,8 @@ void EvaluateEntry()
 
    if (IsNewCandleM5)
    {
-      //Print("IsNewCandleM5: " + IsNewCandleM5);
-      //EvaluateSniper("M5 STATUS");
+      Print("IsNewCandleM5: " + IsNewCandleM5);
+      EvaluateSniper("M5 STATUS");
       EvaluateScanner(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
    }
 
@@ -1642,16 +1642,19 @@ void EvaluateSniper(string command)
 
    switch (UpperTimeFrame)
    {
+      //hour
       case 0: 
       //sniperIndex = 0;
       sniperIndex = 40;  
       break; 
 
+      //15 minutes
       case 10: 
       //sniperIndex = 1;
       sniperIndex = 45;  
       break; 
 
+      //five minutes
       case 20: 
       //sniperIndex = 2; 
       sniperIndex = 50; 
@@ -1659,8 +1662,9 @@ void EvaluateSniper(string command)
    }
 
    if (
-      //M15 BLUE HIGH
-      CombinedHistory[0][(sniperIndex + 2)] >= 99
+      //M15 BLUE HIGH OR RISING
+      (CombinedHistory[0][(sniperIndex + 2)] >= 99
+      || (CombinedHistory[0][(sniperIndex + 2)] > CombinedHistory[1][(sniperIndex + 2)]))
       && 
       //M15 PLOTS ALL GREEN
       (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0) >= 1
@@ -1669,11 +1673,11 @@ void EvaluateSniper(string command)
       && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 0) >= 1
 
       //M5 PINK LOW
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
+      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
 
       //M1 PLOTS 1 RED
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "RED", 1) >= 1
-      //M1 PLOTS 2-3 GREEN
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 6, "RED", 1) >= 1
+      //M1 PLOTS 2-4 GREEN
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 7, "GREEN", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 8, "GREEN", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "GREEN", 0) >= 1
@@ -1711,8 +1715,9 @@ void EvaluateSniper(string command)
    }
    else
      if (
-      //M15 BLUE LOW
-      CombinedHistory[0][(sniperIndex + 2)] <= 1
+      //M15 BLUE LOW OR FALLING
+      (CombinedHistory[0][(sniperIndex + 2)] <= 1
+      || (CombinedHistory[0][(sniperIndex + 2)] < CombinedHistory[1][(sniperIndex + 2)]))
       && 
       //M15 PLOTS ALL RED
       (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) >= 1
@@ -1721,11 +1726,11 @@ void EvaluateSniper(string command)
       && CandleColorHowLong(UpperTimeFrame + 9, "RED", 0) >= 1
 
       //M5 PINK HIGH
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
+      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
 
       //M1 PLOTS 1 RED
-      //&& CandleColorHowLong(UpperTimeFrame + 10 + 6, "GREEN", 1) >= 1
-      //M1 PLOTS 2-3 GREEN
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 6, "GREEN", 1) >= 1
+      //M1 PLOTS 2-4 GREEN
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 7, "RED", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 8, "RED", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "RED", 0) >= 1
@@ -1748,18 +1753,6 @@ void EvaluateSniper(string command)
       {
          SendNotification(Symbol() + " SNIPER COCKED LOW. LOOK FOR A SELL");  
       }    
-
-      /* if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
-      {
-         ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
-         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-         SniperObjectRunning++; 
-
-         SendNotification(Symbol() + " SNIPER COCKED LOW.");  
-      }     */ 
    }
    else
    {
@@ -1771,22 +1764,25 @@ void EvaluateSniper(string command)
 
    //M5 STATUS BUY FORMING
    if (command == "M5 STATUS" 
+      && SniperCockedHigh == true
       && CombinedHistory[0][(sniperIndex + 2)] >= 95 
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] <= 20
       && CombinedHistory[0][(sniperIndex + 5 + 3)] < CombinedHistory[1][(sniperIndex + 5 + 3)]
    )
    {
-      //Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
+      Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
       SendNotification(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");   
    }
 
    //M5 STATUS SELL FORMING
    if (command == "M5 STATUS"
+      && SniperCockedLow == true
       && CombinedHistory[0][(sniperIndex + 2)] <= 5 
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] >= 80
       && CombinedHistory[0][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]
    )
    {
-      //Print(CombinedHistory[1][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]);
-      //Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
+      Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
       SendNotification(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");   
    }
 
