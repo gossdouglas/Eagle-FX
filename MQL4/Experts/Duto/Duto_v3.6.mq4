@@ -1700,23 +1700,7 @@ void EvaluateSniper(string command)
       if (TradingHoursOk())
       {
          SendNotification(Symbol() + " SNIPER COCKED HIGH. LOOK FOR A BUY");   
-      } 
-
-      /* if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
-      {
-         string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)])
-         + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
-
-         ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-         ObjectSet(objName, OBJPROP_RAY , 0);
-         ObjectSet(objName, OBJPROP_COLOR, C'48,61,26');
-         //ObjectSet(objName, OBJPROP_COLOR, clrLawnGreen);
-         ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
-
-         SniperObjectRunning++;
-
-         SendNotification(Symbol() + " SNIPER COCKED HIGH. LOOK FOR A BUY");   
-      }  */    
+      }   
    }
    else
      if (
@@ -1749,18 +1733,16 @@ void EvaluateSniper(string command)
       SniperCockedLow = true;
       SniperCockedNeutral = false; 
 
-      if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
-      {
-         string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) 
-         + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
+      string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) 
+      + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
 
-         ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-         ObjectSet(objName, OBJPROP_RAY , 0);
-         ObjectSet(objName, OBJPROP_COLOR, C'109,2,2');
-         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
-         ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
+      ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+      ObjectSet(objName, OBJPROP_RAY , 0);
+      ObjectSet(objName, OBJPROP_COLOR, C'109,2,2');
+      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
+      ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
 
-         SniperObjectRunning++; 
+      SniperObjectRunning++; 
 
       if (TradingHoursOk())
       {
@@ -1801,11 +1783,7 @@ void EvaluateSniper(string command)
 
    CandleComments = CandleComments + "Sniper Blue Upper Tframe : " + CombinedHistory[1][(sniperIndex + 2)] + "\n";
    CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";
-   
    CandleComments = CandleComments + "Sniper Cocked : " + str + "\n";
-   //CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
-   //CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
-   //CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
 }
 
 double BarColorCount (int Idx, string Command){
