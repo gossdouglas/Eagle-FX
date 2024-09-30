@@ -137,7 +137,7 @@ enum ENUM_ALLOW_DK_STRAT2
 
 //upper left information section
 input string Comment_5 = "=========="; // Duto Specific Settings
-input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_M15; // Upper time frame
+input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_M5; // Upper time frame
 input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 input double BarCountThreshold = 20;  // Bar Count Threshold
 input int LookBackCount = 20;
@@ -175,7 +175,7 @@ int TradePendingTimeoutCount;
 
 bool BuySafetyTradeTraditionalStrategy, SellSafetyTradeTraditionalStrategy, NeutralSafetyTradeTraditionalStrategy;
 
-int HeadsUpObjectRunning = 0;
+int SymmetryObjectRunning = 0;
 
 //HISTORY ARRAYS
 
@@ -230,9 +230,9 @@ input double PSARStopStep = 0.04;                                 // Stop Loss P
 input double PSARStopMax = 0.4;                                   // Stop Loss PSAR Max
 
 input string Comment_1 = "==========";                            // Trading Hours Settings
-input bool UseTradingHours = true;                               // Limit Trading Hours
-input ENUM_HOUR TradingHourStart = h12;                           // Trading Start Hour (Broker Server Hour)
-input ENUM_HOUR TradingHourEnd = h23;                             // Trading End Hour (Broker Server Hour)
+input bool UseTradingHours = false;                               // Limit Trading Hours
+input ENUM_HOUR TradingHourStart = h07;                           // Trading Start Hour (Broker Server Hour)
+input ENUM_HOUR TradingHourEnd = h19;                             // Trading End Hour (Broker Server Hour)
 
 input string Comment_2 = "==========";                            // Stop Loss And Take Profit Settings
 input ENUM_MODE_SL StopLossMode = SL_FIXED;                       // Stop Loss Mode
@@ -289,7 +289,6 @@ int StopLossBy = SL_BY_POINTS;   // How the stop loss is passed for the lot size
 // OnInit is also executed if the time frame or symbol for the chart is changed
 int OnInit()
 {
-   Print("OnInit");
    // It is useful to set a function to check the integrity of the initial parameters and call it as first thing
    CheckPreChecks();
    // If the initial pre checks have something wrong, stop the program
@@ -304,7 +303,7 @@ int OnInit()
    //display the EA settings
    InitializeEASettingsComments();
    //run the tasks that need to be done on each new candle
-   //RunCandleTasks();
+   RunCandleTasks();
 
    // If everything is ok the function returns successfully and the control is passed to a timer or the OnTike function
    return (INIT_SUCCEEDED);
@@ -432,22 +431,34 @@ void InitializeVariables()
 // Evaluate if there is an entry signal, called from the OnTickEvent
 void EvaluateEntry()
 {
-   Print("yo.");
+   SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
-   /* SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+   /* if (!IsSpreadOK)
+      return; // If the spread is too high don't give an entry signal
+
+   if (IsTradedThisBar)
+      return; // If you don't want to execute multiple trades in the same bar
+
+   if (TotalOpenOrders > 0)
+      return; // If there are already open orders and you don't want to open more */
 
    if (IsNewCandleM5)
    {
-      Print("IsNewCandleM5: " + IsNewCandleM5);
-      //EvaluateSniper("M5 STATUS");
-      //EvaluateScanner(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
+      //Print("IsNewCandleM5: " + IsNewCandleM5);
+      EvaluateSniper("M5 STATUS");
    }
 
    // whether a new candle has been started is based on the chart that is shown
    //if (IsNewCandle)
    if (IsNewCandleM1)
    {
-      RunCandleTasks();  
+      //Print("IsNewCandleM5: " + IsNewCandleM5);
+      //EvaluateSniper("M5 STATUS");
+      //Print("RunCandleTasks");
+      RunCandleTasks();
+
+      //Print("GREEN Count: " + CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0));
+      //Print("RED Count: " + CandleColorHowLong(UpperTimeFrame + 6, "RED", 0));
    }
 
    //this logic only allows an evaluation to be made if LogIndicatorData has been executed at least once
@@ -461,7 +472,7 @@ void EvaluateEntry()
    }
 
    //write out the comment section
-   Comment(SettingsComments + CandleComments + PipComments);  */
+   Comment(SettingsComments + CandleComments + PipComments); 
 }
 
 // Execute entry if there is an entry signal
@@ -1509,7 +1520,7 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
          + "";
 
-         //10 build a line of data
+         /* //10 build a line of data
          FastMAHistoryBuffer[i] = iCustom(Symbol(),10, duto_chart_indicators, 0, i);
          CombinedHistory[i][30] = i;//candle index
          CombinedHistory[i][32] = FastMAHistoryBuffer[i];//fast moving average
@@ -1570,7 +1581,7 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot2HistoryBuffer[i], 7)
          + "," + DoubleToString(MacdPlot3HistoryBuffer[i], 7)
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
-         + "";
+         + ""; */
 
          //5 build a line of data
          FastMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 0, i);
@@ -1634,7 +1645,7 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
          + "";
 
-         //3 build a line of data
+         /* //3 build a line of data
          FastMAHistoryBuffer[i] = iCustom(Symbol(),3, duto_chart_indicators, 0, i);
          CombinedHistory[i][50] = i;//candle index
          CombinedHistory[i][52] = FastMAHistoryBuffer[i];//fast moving average
@@ -1694,7 +1705,7 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot2HistoryBuffer[i], 7)
          + "," + DoubleToString(MacdPlot3HistoryBuffer[i], 7)
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
-         + "";
+         + ""; */
 
          //1 build a line of data
          FastMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 0, i);
@@ -1767,11 +1778,11 @@ void LogIndicatorData()
          + "," + CombinedHistory[i][71]
          + "," + CombinedHistory[i][72]
 
-         + "," + i
+         /* + "," + i
          + "," + iTime(Symbol(), 30, i) 
          + "," + CombinedHistory[i][75]
          + "," + CombinedHistory[i][76]
-         + "," + CombinedHistory[i][77]
+         + "," + CombinedHistory[i][77] */
 
          + "," + i
          + "," + iTime(Symbol(), 15, i) 
@@ -1779,11 +1790,11 @@ void LogIndicatorData()
          + "," + CombinedHistory[i][81]
          + "," + CombinedHistory[i][82]
 
-         + "," + i
+         /* + "," + i
          + "," + iTime(Symbol(), 10, i) 
          + "," + CombinedHistory[i][85]
          + "," + CombinedHistory[i][86]
-         + "," + CombinedHistory[i][87]
+         + "," + CombinedHistory[i][87] */
 
          + "," + i
          + "," + iTime(Symbol(), 5, i) 
@@ -1791,11 +1802,11 @@ void LogIndicatorData()
          + "," + CombinedHistory[i][91]
          + "," + CombinedHistory[i][92]
 
-         + "," + i
+         /* + "," + i
          + "," + iTime(Symbol(), 3, i) 
          + "," + CombinedHistory[i][95]
          + "," + CombinedHistory[i][96]
-         + "," + CombinedHistory[i][97]
+         + "," + CombinedHistory[i][97] */
 
          + "," + i
          + "," + iTime(Symbol(), 1, i) 
@@ -1841,19 +1852,16 @@ void EvaluateSniper(string command)
 
    switch (UpperTimeFrame)
    {
-      //hour
       case 0: 
       //sniperIndex = 0;
       sniperIndex = 40;  
       break; 
 
-      //15 minutes
       case 10: 
       //sniperIndex = 1;
       sniperIndex = 45;  
       break; 
 
-      //five minutes
       case 20: 
       //sniperIndex = 2; 
       sniperIndex = 50; 
@@ -1889,17 +1897,21 @@ void EvaluateSniper(string command)
       SniperCockedLow = false;
       SniperCockedNeutral = false;
 
-      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
-      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-      SniperObjectRunning++;
-
-      if (TradingHoursOk())
+      if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
       {
+         string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)])
+         + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
+
+         ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+         ObjectSet(objName, OBJPROP_RAY , 0);
+         ObjectSet(objName, OBJPROP_COLOR, C'48,61,26');
+         //ObjectSet(objName, OBJPROP_COLOR, clrLawnGreen);
+         ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
+
+         SniperObjectRunning++;
+
          SendNotification(Symbol() + " SNIPER COCKED HIGH. LOOK FOR A BUY");   
-      }   
+      }     
    }
    else
      if (
@@ -1932,21 +1944,21 @@ void EvaluateSniper(string command)
       SniperCockedLow = true;
       SniperCockedNeutral = false; 
 
-      string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) 
-      + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
-
-      ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-      ObjectSet(objName, OBJPROP_RAY , 0);
-      ObjectSet(objName, OBJPROP_COLOR, C'109,2,2');
-      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
-      ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
-
-      SniperObjectRunning++; 
-
-      if (TradingHoursOk())
+      if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
       {
-         SendNotification(Symbol() + " SNIPER COCKED LOW. LOOK FOR A SELL");  
-      }    
+         string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) 
+         + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
+
+         ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+         ObjectSet(objName, OBJPROP_RAY , 0);
+         ObjectSet(objName, OBJPROP_COLOR, C'109,2,2');
+         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
+         ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
+
+         SniperObjectRunning++; 
+
+         SendNotification(Symbol() + " SNIPER COCKED LOW.");  
+      }     
    }
    else
    {
@@ -1958,31 +1970,32 @@ void EvaluateSniper(string command)
 
    //M5 STATUS BUY FORMING
    if (command == "M5 STATUS" 
-      && SniperCockedHigh == true
       && CombinedHistory[0][(sniperIndex + 2)] >= 95 
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] <= 20
       && CombinedHistory[0][(sniperIndex + 5 + 3)] < CombinedHistory[1][(sniperIndex + 5 + 3)]
    )
    {
-      Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
+      //Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
       SendNotification(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");   
    }
 
    //M5 STATUS SELL FORMING
    if (command == "M5 STATUS"
-      && SniperCockedLow == true
       && CombinedHistory[0][(sniperIndex + 2)] <= 5 
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] >= 80
       && CombinedHistory[0][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]
    )
    {
-      Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
+      //Print(CombinedHistory[1][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]);
+      //Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
       SendNotification(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");   
    }
 
    CandleComments = CandleComments + "Sniper Blue Upper Tframe : " + CombinedHistory[1][(sniperIndex + 2)] + "\n";
    CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";
+   
    CandleComments = CandleComments + "Sniper Cocked : " + str + "\n";
+   //CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
+   //CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
+   //CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
 }
 
 double BarColorCount (int Idx, string Command){
@@ -2105,10 +2118,9 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          return count;          
    }
 
-   //BRIGHT GREEN NEXT TO DARK GREEN
+   //if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
    if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx])
-      && (CombinedHistory[CndleStart][Idx] > 0) && (CombinedHistory[CndleStart + 1][Idx] > 0)
-      )
+      && (CombinedHistory[CndleStart][Idx] > 0) && (CombinedHistory[CndleStart + 1][Idx] > 0))
    {
       do
       { 
@@ -2125,17 +2137,6 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          );
 
          //Print("BR_GREEN Count: " + count);
-   }
-
-   //ONE BRIGHT GREEN NEXT TO DARK RED
-   if (command == "BR_GREEN" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx])
-      && (CombinedHistory[CndleStart][Idx] > 0) && (CombinedHistory[CndleStart + 1][Idx] < 0)
-      )
-   {
-         count++;
-         //Print("BR_GREEN Count: " + count);
-
-         return count;
    }
 
    //if (command == "DK_GREEN" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx]))
@@ -2197,17 +2198,6 @@ int CandleColorHowLong(int Idx, string command, int CndleStart)
          );
 
          //Print("BR_RED Count: " + count);
-   }
-
-   //ONE BRIGHT RED NEXT TO DARK GREEN
-   if (command == "BR_RED" && (CombinedHistory[CndleStart][Idx] < CombinedHistory[CndleStart + 1][Idx])
-      && (CombinedHistory[CndleStart][Idx] < 0) && (CombinedHistory[CndleStart + 1][Idx] > 0)
-      )
-   {
-         count++;
-         //Print("BR_RED Count: " + count);
-
-         return count;
    }
 
    //if (command == "DK_RED" && (CombinedHistory[CndleStart][Idx] > CombinedHistory[CndleStart + 1][Idx]))
@@ -2333,7 +2323,7 @@ void WriteTextToRight()
 
 }
 
-void EvaluateScanner(int Idx, string command, int CndleStart)
+void EvaluateSymmetry(int Idx, string command, int CndleStart)
 {
    //change from bright red to dark red
    if (AskThePlotsColorChange(UpperTimeFrame + 10 + 6, 1, 1, "BUY_BR_RED_DK_RED") == "PLOT INCREASING BRIGHT RED TO DARK RED")
@@ -2360,26 +2350,31 @@ void EvaluateScanner(int Idx, string command, int CndleStart)
             Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]); */
 
             if(
-               (numBrRdCandles >= 2)
-               && (numDkGrCandles >= 1)
-               && (numBrGrCandles >= 1)
-               //&& (numDkRdCandles >= 3)
-
-               && CombinedHistory[CndleStart - 1][Idx + 1] > 0
-               && CombinedHistory[CndleStart - 1][Idx + 2] > 0
-               && CombinedHistory[CndleStart - 1][Idx + 3] > 0
+               (numBrRdCandles >= 3)
+               && (numDkGrCandles >= 3)
+               && (numBrGrCandles >=3)
+               && (numDkRdCandles >= 3)
             )
             {
-            ObjectCreate("objHeadsUpObject_" + Period() + "_" + HeadsUpObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-            ObjectSet("objHeadsUpObject_" + Period() + "_" + HeadsUpObjectRunning, OBJPROP_RAY , 0);
-            ObjectSet("objHeadsUpObject_" + Period() + "_" + HeadsUpObjectRunning, OBJPROP_COLOR,clrOrange);
-            ObjectSet("objHeadsUpObject_" + Period() + "_" + HeadsUpObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
-            HeadsUpObjectRunning++;
+            /* Print("numBrRdCandles: " + numBrRdCandles);
+            Print("Last BrRd candle value: " + CombinedHistory[numBrRdCandles + 1][UpperTimeFrame + 10 + 6]);
+               
+            Print("numDkGrCandles: " + numDkGrCandles);
+            Print("Last DkGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles][UpperTimeFrame + 10 + 6]);
 
-            if (TradingHoursOk())
-            {
-               SendNotification(Symbol() + " BUY_BR_RED_DK_RED COCKED. LOOK FOR A BUY");   
-            }  
+            Print("numBrGrCandles: " + numBrGrCandles);
+            Print("Last BrGr candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles + numBrGrCandles][UpperTimeFrame + 10 + 6]);
+
+            Print("numDkRdCandles: " + numDkRdCandles);
+            Print("Last DkRd candle value: " + CombinedHistory[(numBrRdCandles + 1) + numDkGrCandles 
+            + numBrGrCandles + numDkRdCandles][UpperTimeFrame + 10 + 6]); */
+
+            //ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_VLINE, 0, Time[0], 0);
+            ObjectCreate("objSymmetryObject_" + SymmetryObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+            ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_RAY , 0);
+            ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_COLOR,clrSeaGreen);
+            ObjectSet("objSymmetryObject_" + SymmetryObjectRunning, OBJPROP_STYLE, STYLE_DASHDOTDOT);
+            SymmetryObjectRunning++; 
             }
          }         
       }  
@@ -2510,7 +2505,7 @@ void RunCandleTasks()
       //log data and build the CombinedHistory array
       LogIndicatorData();
       //evaluate for a strategy
-      //SelectedStrategy();
+      SelectedStrategy();
       //
       EvaluateLastHighestLowest();
       //
@@ -2518,24 +2513,13 @@ void RunCandleTasks()
       //evaluate the sniper
       //EvaluateSniper();
       //evaluate symmetry
-      //EvaluateScanner(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
+      //EvaluateSymmetry(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
 
       StartupFlag = true;
       //Comment(StringFormat("Show prices\nAsk = %G\nBid = %G = %d",Ask,Bid)); 
 }
 
-bool TradingHoursOk()
-{
-   bool result = false;
-
-   if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
-   {
-      result = true;
-   } 
-
-   return result;
-}
-/* DrawDutoObject("objHeadsUpObject", HeadsUpObjectRunning, 
+/* DrawDutoObject("objSymmetryObject", SymmetryObjectRunning, 
       OBJ_VLINE, clrSeaGreen, STYLE_DASHDOTDOT); */
 
 /* void DrawDutoObject(string ObjPrefix, int ObjRunning, 
