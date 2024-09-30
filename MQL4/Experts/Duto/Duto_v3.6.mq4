@@ -137,7 +137,7 @@ enum ENUM_ALLOW_DK_STRAT2
 
 //upper left information section
 input string Comment_5 = "=========="; // Duto Specific Settings
-input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_M5; // Upper time frame
+input ENUM_UPPER_TIME_FRAME UpperTimeFrame = TIME_FRAME_H1; // Upper time frame
 input double BarColorCountThreshold = 3.5;  // BarColorCount Threshold
 input double BarCountThreshold = 20;  // Bar Count Threshold
 input int LookBackCount = 20;
@@ -230,9 +230,9 @@ input double PSARStopStep = 0.04;                                 // Stop Loss P
 input double PSARStopMax = 0.4;                                   // Stop Loss PSAR Max
 
 input string Comment_1 = "==========";                            // Trading Hours Settings
-input bool UseTradingHours = false;                               // Limit Trading Hours
-input ENUM_HOUR TradingHourStart = h07;                           // Trading Start Hour (Broker Server Hour)
-input ENUM_HOUR TradingHourEnd = h19;                             // Trading End Hour (Broker Server Hour)
+input bool UseTradingHours = true;                               // Limit Trading Hours
+input ENUM_HOUR TradingHourStart = h12;                           // Trading Start Hour (Broker Server Hour)
+input ENUM_HOUR TradingHourEnd = h23;                             // Trading End Hour (Broker Server Hour)
 
 input string Comment_2 = "==========";                            // Stop Loss And Take Profit Settings
 input ENUM_MODE_SL StopLossMode = SL_FIXED;                       // Stop Loss Mode
@@ -262,6 +262,7 @@ input int MaxSpread = 100;             // Maximum Allowed Spread To Trade In Poi
 bool IsPreChecksOk = false;      // Indicates if the pre checks are satisfied
 
 bool IsNewCandle = false;        // Indicates if this is a new candle formed
+bool IsNewCandleH1 = false; 
 bool IsNewCandleM15 = false; 
 bool IsNewCandleM5 = false; 
 bool IsNewCandleM1 = false; 
@@ -442,9 +443,13 @@ void EvaluateEntry()
    if (TotalOpenOrders > 0)
       return; // If there are already open orders and you don't want to open more */
 
+   if (IsNewCandleM15)
+   {
+      EvaluateSniper("M15 STATUS");
+   }
+
    if (IsNewCandleM5)
    {
-      //Print("IsNewCandleM5: " + IsNewCandleM5);
       EvaluateSniper("M5 STATUS");
    }
 
@@ -760,6 +765,7 @@ void CheckOperationHours()
 // Check if it is a new bar
 //datetime NewBarTime = TimeCurrent();
 
+datetime NewBarTimeH1 = TimeCurrent();
 datetime NewBarTimeM15 = TimeCurrent();
 datetime NewBarTimeM5 = TimeCurrent();
 datetime NewBarTimeM1 = TimeCurrent();
@@ -1684,18 +1690,18 @@ void EvaluateSniper(string command)
 
       //M15 BLUE LOW, PINK LOW
       //&& CombinedHistory[0][(sniperIndex + 5 + 2)] <= 5
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
+      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
 
       /* && CandleColorHowLong(UpperTimeFrame + 10 + 6, "RED", 1) >= 1
       //M1 PLOTS 2-3 GREEN
       && CandleColorHowLong(UpperTimeFrame + 10 + 7, "GREEN", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 8, "GREEN", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 9, "GREEN", 0) >= 1  */
+
+      //H1 PINK RISING
+      //|| (CombinedHistory[0][(sniperIndex + 3)] > CombinedHistory[1][(sniperIndex + 3)])
       )
    {
-      Print("CombinedHistory[0][(sniperIndex + 5 + 2)] ; " + CombinedHistory[0][(sniperIndex + 5 + 2)]);
-      Print("CombinedHistory[0][(sniperIndex + 5 + 3)] ; " + CombinedHistory[0][(sniperIndex + 5 + 3)]);
-
       str = "HIGH";
       SniperCockedHigh = true;
       SniperCockedLow = false;
@@ -1720,8 +1726,8 @@ void EvaluateSniper(string command)
    else
      if (
       //H1 BLUE LOW, PINK HIGH
-      CombinedHistory[0][(sniperIndex + 2)] <= 5
-      && CombinedHistory[0][(sniperIndex + 3)] >= 99
+      CombinedHistory[0][(sniperIndex + 2)] <= 1
+      && CombinedHistory[0][(sniperIndex + 3)] >= 95
       /* //H1 PLOTS ALL RED
       && (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 7, "RED", 0) >= 1
@@ -1730,7 +1736,7 @@ void EvaluateSniper(string command)
 
       //M15 BLUE HIGH, PINK HIGH
       //&& CombinedHistory[0][(sniperIndex + 5 + 2)] >= 95
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
+      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
 
       /* //M15 PLOTS 1 RED
       && CandleColorHowLong(UpperTimeFrame + 10 + 6, "GREEN", 1) >= 1
@@ -1740,9 +1746,6 @@ void EvaluateSniper(string command)
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "RED", 0) >= 1 */
       )
    {
-      Print("CombinedHistory[0][(sniperIndex + 5 + 2)] ; " + CombinedHistory[0][(sniperIndex + 5 + 2)]);
-      Print("CombinedHistory[0][(sniperIndex + 5 + 3)] ; " + CombinedHistory[0][(sniperIndex + 5 + 3)]);
-
       str = "LOW";
       SniperCockedHigh = false;
       SniperCockedLow = true;
@@ -1772,34 +1775,78 @@ void EvaluateSniper(string command)
       str = "NEUTRAL";
    }
 
-   //M5 STATUS BUY FORMING
-   if (command == "M5 STATUS" 
+   //M15 STATUS BUY FORMING
+   if (command == "M15 STATUS" 
+      //H1 BLUE LINE HIGH
       && CombinedHistory[0][(sniperIndex + 2)] >= 95 
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] < CombinedHistory[1][(sniperIndex + 5 + 3)]
+      //M15 PINK DECREASING AND LESS THAN 30
+      && MathRound(CombinedHistory[0][48]) < MathRound(CombinedHistory[1][48])
+      && MathRound(CombinedHistory[0][48]) < 30
    )
    {
-      //Print(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");
-      SendNotification(Symbol() + " M5 PINK SNIPER DECREASING. BUY FORMING");   
+      Print(Symbol() + " M15 PINK SNIPER DECREASING. " + 
+      MathRound(CombinedHistory[1][48]) + "->" + MathRound(CombinedHistory[0][48]) + ". BUY FORMING");
+      
+      SendNotification(Symbol() + " M15 PINK SNIPER DECREASING. " + 
+      MathRound(CombinedHistory[1][48]) + "->" + MathRound(CombinedHistory[0][48]) + ". BUY FORMING");     
+   }
+
+   //M15 STATUS SELL FORMING
+   if (command == "M15 STATUS"
+      //H1 BLUE LINE LOW
+      && MathRound(CombinedHistory[0][(sniperIndex + 2)]) <= 5
+      //M15 PINK INCREASING AND GREATER THAN 70 
+      && MathRound(CombinedHistory[0][48]) > MathRound(CombinedHistory[1][48])
+      && MathRound(CombinedHistory[0][48]) > 70
+   )
+   {
+      Print(Symbol() + " M15 PINK SNIPER INCREASING. " + 
+      MathRound(CombinedHistory[1][48]) + "->" + MathRound(CombinedHistory[0][48]) + ". SELL FORMING");
+
+      SendNotification(Symbol() + " M15 PINK SNIPER INCREASING. " + 
+      MathRound(CombinedHistory[1][48]) + "->" + MathRound(CombinedHistory[0][48]) + ". SELL FORMING");   
+   }
+
+   //M5 STATUS BUY FORMING
+   if (command == "M5 STATUS" 
+      //H1 BLUE LINE HIGH
+      && MathRound(CombinedHistory[0][(sniperIndex + 2)]) >= 95 
+      //M5 PINK LINE DECREASING AND LESS THAN 25
+      && MathRound(CombinedHistory[0][53]) < MathRound(CombinedHistory[1][53])
+      && MathRound(CombinedHistory[0][53]) < 25
+      //M15 PINK LESS THAN 30
+      && MathRound(CombinedHistory[0][48]) < 30
+   )
+   {
+      Print(Symbol() + " M5 PINK SNIPER DECREASING. " + 
+      MathRound(CombinedHistory[1][53]) + "->" + MathRound(CombinedHistory[0][53]) + ". BUY FORMING");
+
+      SendNotification(Symbol() + " M5 PINK SNIPER DECREASING. " + 
+      MathRound(CombinedHistory[1][53]) + "->" + MathRound(CombinedHistory[0][53]) + ". BUY FORMING"); 
    }
 
    //M5 STATUS SELL FORMING
    if (command == "M5 STATUS"
-      && CombinedHistory[0][(sniperIndex + 2)] <= 5 
-      && CombinedHistory[0][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]
+      //H1 BLUE LINE LOW
+      && MathRound(CombinedHistory[0][(sniperIndex + 2)]) <= 5 
+      //M5 PINK LINE INCREASING AND GREATER THAN 75
+      && MathRound(CombinedHistory[0][53]) > MathRound(CombinedHistory[1][53])
+      && MathRound(CombinedHistory[0][53]) > 75
+      //M15 PINK GREATER THAN 70
+      && MathRound(CombinedHistory[0][48]) > 70
    )
    {
-      //Print(CombinedHistory[1][(sniperIndex + 5 + 3)] > CombinedHistory[1][(sniperIndex + 5 + 3)]);
-      //Print(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");
-      SendNotification(Symbol() + " M5 PINK SNIPER INCREASING. SELL FORMING");   
+      Print(Symbol() + " M5 PINK SNIPER INCREASING. " + 
+      MathRound(CombinedHistory[1][53]) + "->" + MathRound(CombinedHistory[0][53]) + ". SELL FORMING");
+
+      SendNotification(Symbol() + " M5 PINK SNIPER INCREASING. " + 
+      MathRound(CombinedHistory[1][53]) + "->" + MathRound(CombinedHistory[0][53]) + ". SELL FORMING"); 
    }
 
    CandleComments = CandleComments + "Sniper Blue Upper Tframe : " + CombinedHistory[1][(sniperIndex + 2)] + "\n";
-   CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";
-   
+   CandleComments = CandleComments + "Sniper Pink Upper Tframe : " + CombinedHistory[1][(sniperIndex + 3)] + "\n";  
    CandleComments = CandleComments + "Sniper Cocked : " + str + "\n";
-   //CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh + "\n";
-   //CandleComments = CandleComments + "SniperCockedLow  : " + SniperCockedLow  + "\n";
-   //CandleComments = CandleComments + "SniperCockedNeutral  : " + SniperCockedNeutral  + "\n";
+   //CandleComments = CandleComments + "SniperCockedHigh  : " + SniperCockedHigh +
 }
 
 double BarColorCount (int Idx, string Command){
