@@ -188,8 +188,8 @@ int SniperHistoryBuffer[];
 
 //a two dimensional array that stored indicator data from all time frames
 //each time frame has 10 measurements
-double CombinedHistoryPrev[1][100];
-double CombinedHistory[1][100];
+double CombinedHistoryPrev[1][110];
+double CombinedHistory[1][110];
 //track whether a macd is trending bright or dark
 double BrightTickCount, DarkTickCount;
 
@@ -289,6 +289,7 @@ int StopLossBy = SL_BY_POINTS;   // How the stop loss is passed for the lot size
 // OnInit is also executed if the time frame or symbol for the chart is changed
 int OnInit()
 {
+   Print("OnInit");
    // It is useful to set a function to check the integrity of the initial parameters and call it as first thing
    CheckPreChecks();
    // If the initial pre checks have something wrong, stop the program
@@ -303,7 +304,7 @@ int OnInit()
    //display the EA settings
    InitializeEASettingsComments();
    //run the tasks that need to be done on each new candle
-   RunCandleTasks();
+   //RunCandleTasks();
 
    // If everything is ok the function returns successfully and the control is passed to a timer or the OnTike function
    return (INIT_SUCCEEDED);
@@ -431,13 +432,15 @@ void InitializeVariables()
 // Evaluate if there is an entry signal, called from the OnTickEvent
 void EvaluateEntry()
 {
-   SignalEntry = SIGNAL_ENTRY_NEUTRAL;
+   Print("yo.");
+
+   /* SignalEntry = SIGNAL_ENTRY_NEUTRAL;
 
    if (IsNewCandleM5)
    {
       Print("IsNewCandleM5: " + IsNewCandleM5);
-      EvaluateSniper("M5 STATUS");
-      EvaluateScanner(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
+      //EvaluateSniper("M5 STATUS");
+      //EvaluateScanner(UpperTimeFrame + 10 + 6, "BUY_BR_RED_DK_RED", 2);
    }
 
    // whether a new candle has been started is based on the chart that is shown
@@ -458,7 +461,7 @@ void EvaluateEntry()
    }
 
    //write out the comment section
-   Comment(SettingsComments + CandleComments + PipComments); 
+   Comment(SettingsComments + CandleComments + PipComments);  */
 }
 
 // Execute entry if there is an entry signal
@@ -1360,11 +1363,9 @@ void LogIndicatorData()
             strWriteLine2 = ",Positive";
          }
 
-         //SniperHistoryBuffer[i] = iCustom(Symbol(),60, duto_sniper, 0, i);
-         //CombinedHistory[i][40] = SniperHistoryBuffer[i];//sniper
-         CombinedHistory[i][42] = iCustom(Symbol(),60, SniperBlue, 0, i);//sniper
-         CombinedHistory[i][43] = iCustom(Symbol(),60, SniperPink, 0, i);//sniper
-         CombinedHistory[i][44] = iCustom(Symbol(),60, SniperPurple, 0, i);//sniper
+         CombinedHistory[i][70] = iCustom(Symbol(),60, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][71] = iCustom(Symbol(),60, SniperPink, 0, i);//sniper
+         CombinedHistory[i][72] = iCustom(Symbol(),60, SniperPurple, 0, i);//sniper
          
          //build a line of strings based on a line of data
          strWriteLine = 
@@ -1383,19 +1384,19 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
          + "";
 
-         //15 build a line of data
-         FastMAHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 0, i);
+         //30 build a line of data
+         FastMAHistoryBuffer[i] = iCustom(Symbol(),30, duto_chart_indicators, 0, i);
          CombinedHistory[i][10] = i;//candle index
-         CombinedHistory[i][12] = FastMAHistoryBuffer[i];//fast moving average
+         CombinedHistory[i][12] = NormalizeDouble(FastMAHistoryBuffer[i], 5);//fast moving average
          
-         SlowMAHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 1, i);
+         SlowMAHistoryBuffer[i] = iCustom(Symbol(),30, duto_chart_indicators, 1, i);
          CombinedHistory[i][13] = SlowMAHistoryBuffer[i];//slow moving average
 
-         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 4, i);
+         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),30, duto_chart_indicators, 4, i);
          CombinedHistory[i][14] = FiveFiftyMAHistoryBuffer[i];//550 moving average
 
-         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 5, i);
-         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 6, i);
+         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),30, duto_chart_indicators, 5, i);
+         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),30, duto_chart_indicators, 6, i);
 
          if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
             CombinedHistory[i][15] = -1;//delta collapsed negative
@@ -1404,17 +1405,79 @@ void LogIndicatorData()
             CombinedHistory[i][15] = 1;//delta collapsed positive
          }
 
-         MacdHistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 0, i);
+         MacdHistoryBuffer[i] = iCustom(Symbol(),30, indicatorName, 0, i);
          CombinedHistory[i][16] = MacdHistoryBuffer[i];//macd histogram
 
-         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 1, i);
+         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),30, indicatorName, 1, i);
          CombinedHistory[i][17] = MacdPlot2HistoryBuffer[i];//plot 2
 
-         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 2, i);
+         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),30, indicatorName, 2, i);
          CombinedHistory[i][18] = MacdPlot3HistoryBuffer[i];//plot 3
 
-         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 3, i);
+         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),30, indicatorName, 3, i);
          CombinedHistory[i][19] = MacdPlot4HistoryBuffer[i];//plot 4
+      
+         if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
+
+            strWriteLine2 = ",Negative";
+         }
+         else {
+            strWriteLine2 = ",Positive";
+         }
+
+         CombinedHistory[i][75] = iCustom(Symbol(),30, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][76] = iCustom(Symbol(),30, SniperPink, 0, i);//sniper
+         CombinedHistory[i][77] = iCustom(Symbol(),30, SniperPurple, 0, i);//sniper
+         
+         //build a line of strings based on a line of data
+         strWriteLine = 
+         i
+         + "," + iTime(Symbol(), 30, i) 
+
+         + "," + DoubleToString(FastMAHistoryBuffer[i], 5)
+         + "," + DoubleToString(SlowMAHistoryBuffer[i], 5)
+         + "," + DoubleToString(FiveFiftyMAHistoryBuffer[i], 5)
+
+         + strWriteLine2
+         
+         + "," + DoubleToString(MacdHistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot2HistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot3HistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
+         + "";
+
+         //15 build a line of data
+         FastMAHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 0, i);
+         CombinedHistory[i][20] = i;//candle index
+         CombinedHistory[i][22] = FastMAHistoryBuffer[i];//fast moving average
+         
+         SlowMAHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 1, i);
+         CombinedHistory[i][23] = SlowMAHistoryBuffer[i];//slow moving average
+
+         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 4, i);
+         CombinedHistory[i][24] = FiveFiftyMAHistoryBuffer[i];//550 moving average
+
+         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 5, i);
+         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),15, duto_chart_indicators, 6, i);
+
+         if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
+            CombinedHistory[i][25] = -1;//delta collapsed negative
+         }
+         else {
+            CombinedHistory[i][25] = 1;//delta collapsed positive
+         }
+
+         MacdHistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 0, i);
+         CombinedHistory[i][26] = MacdHistoryBuffer[i];//macd histogram
+
+         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 1, i);
+         CombinedHistory[i][27] = MacdPlot2HistoryBuffer[i];//plot 2
+
+         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 2, i);
+         CombinedHistory[i][28] = MacdPlot3HistoryBuffer[i];//plot 3
+
+         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),15, indicatorName, 3, i);
+         CombinedHistory[i][29] = MacdPlot4HistoryBuffer[i];//plot 4
 
          if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
 
@@ -1424,11 +1487,9 @@ void LogIndicatorData()
             strWriteLine2 = ",Positive";
          }
 
-         //SniperHistoryBuffer[i] = iCustom(Symbol(),15, duto_sniper, 0, i);
-         //CombinedHistory[i][41] = SniperHistoryBuffer[i];//sniper
-         CombinedHistory[i][47] = iCustom(Symbol(),15, SniperBlue, 0, i);//sniper
-         CombinedHistory[i][48] = iCustom(Symbol(),15, SniperPink, 0, i);//sniper
-         CombinedHistory[i][49] = iCustom(Symbol(),15, SniperPurple, 0, i);//sniper
+         CombinedHistory[i][82] = iCustom(Symbol(),15, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][81] = iCustom(Symbol(),15, SniperPink, 0, i);//sniper
+         CombinedHistory[i][82] = iCustom(Symbol(),15, SniperPurple, 0, i);//sniper
          
          //build a line of strings based on a line of data
          strWriteLine = strWriteLine +
@@ -1448,38 +1509,38 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
          + "";
 
-         //5 build a line of data
-         FastMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 0, i);
-         CombinedHistory[i][20] = i;//candle index
-         CombinedHistory[i][22] = FastMAHistoryBuffer[i];//fast moving average
+         //10 build a line of data
+         FastMAHistoryBuffer[i] = iCustom(Symbol(),10, duto_chart_indicators, 0, i);
+         CombinedHistory[i][30] = i;//candle index
+         CombinedHistory[i][32] = FastMAHistoryBuffer[i];//fast moving average
          
-         SlowMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 1, i);
-         CombinedHistory[i][23] = SlowMAHistoryBuffer[i];//slow moving average
+         SlowMAHistoryBuffer[i] = iCustom(Symbol(),10, duto_chart_indicators, 1, i);
+         CombinedHistory[i][33] = SlowMAHistoryBuffer[i];//slow moving average
 
-         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 4, i);
-         CombinedHistory[i][24] = FiveFiftyMAHistoryBuffer[i];//550 moving average
+         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),10, duto_chart_indicators, 4, i);
+         CombinedHistory[i][34] = FiveFiftyMAHistoryBuffer[i];//550 moving average
 
-         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 5, i);
-         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 6, i);
+         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),10, duto_chart_indicators, 5, i);
+         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),10, duto_chart_indicators, 6, i);
 
          if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
-            CombinedHistory[i][25] = -1;//delta collapsed negative
+            CombinedHistory[i][35] = -1;//delta collapsed negative
          }
          else {
-            CombinedHistory[i][25] = 1;//delta collapsed positive
+            CombinedHistory[i][35] = 1;//delta collapsed positive
          }
 
-         MacdHistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 0, i);
-         CombinedHistory[i][26] = MacdHistoryBuffer[i];//macd histogram
+         MacdHistoryBuffer[i] = iCustom(Symbol(),10, indicatorName, 0, i);
+         CombinedHistory[i][36] = MacdHistoryBuffer[i];//macd histogram
 
-         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 1, i);
-         CombinedHistory[i][27] = MacdPlot2HistoryBuffer[i];//plot 2
+         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),10, indicatorName, 1, i);
+         CombinedHistory[i][37] = MacdPlot2HistoryBuffer[i];//plot 2
 
-         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 2, i);
-         CombinedHistory[i][28] = MacdPlot3HistoryBuffer[i];//plot 3
+         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),10, indicatorName, 2, i);
+         CombinedHistory[i][38] = MacdPlot3HistoryBuffer[i];//plot 3
 
-         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 3, i);
-         CombinedHistory[i][29] = MacdPlot4HistoryBuffer[i];//plot 4
+         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),10, indicatorName, 3, i);
+         CombinedHistory[i][39] = MacdPlot4HistoryBuffer[i];//plot 4
 
          if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
 
@@ -1489,11 +1550,72 @@ void LogIndicatorData()
             strWriteLine2 = ",Positive";
          }
 
-         //SniperHistoryBuffer[i] = iCustom(Symbol(),5, duto_sniper, 0, i);
-         //CombinedHistory[i][42] = SniperHistoryBuffer[i];//sniper
-         CombinedHistory[i][52] = iCustom(Symbol(),5, SniperBlue, 0, i);//sniper
-         CombinedHistory[i][53] = iCustom(Symbol(),5, SniperPink, 0, i);//sniper
-         CombinedHistory[i][54] = iCustom(Symbol(),5, SniperPurple, 0, i);//sniper
+         CombinedHistory[i][85] = iCustom(Symbol(),10, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][86] = iCustom(Symbol(),10, SniperPink, 0, i);//sniper
+         CombinedHistory[i][87] = iCustom(Symbol(),10, SniperPurple, 0, i);//sniper
+         
+         //build a line of strings based on a line of data
+         strWriteLine = strWriteLine +
+         //",Candle " + i
+         "," + i
+         + "," + iTime(Symbol(), 10, i) 
+
+         + "," + DoubleToString(FastMAHistoryBuffer[i], 5)
+         + "," + DoubleToString(SlowMAHistoryBuffer[i], 5)
+         + "," + DoubleToString(FiveFiftyMAHistoryBuffer[i], 5)
+
+         + strWriteLine2
+         
+         + "," + DoubleToString(MacdHistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot2HistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot3HistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
+         + "";
+
+         //5 build a line of data
+         FastMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 0, i);
+         CombinedHistory[i][40] = i;//candle index
+         CombinedHistory[i][42] = FastMAHistoryBuffer[i];//fast moving average
+         
+         SlowMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 1, i);
+         CombinedHistory[i][43] = SlowMAHistoryBuffer[i];//slow moving average
+
+         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 4, i);
+         CombinedHistory[i][44] = FiveFiftyMAHistoryBuffer[i];//550 moving average
+
+         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 5, i);
+         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),5, duto_chart_indicators, 6, i);
+
+         if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
+            CombinedHistory[i][45] = -1;//delta collapsed negative
+         }
+         else {
+            CombinedHistory[i][45] = 1;//delta collapsed positive
+         }
+
+         MacdHistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 0, i);
+         CombinedHistory[i][46] = MacdHistoryBuffer[i];//macd histogram
+
+         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 1, i);
+         CombinedHistory[i][47] = MacdPlot2HistoryBuffer[i];//plot 2
+
+         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 2, i);
+         CombinedHistory[i][48] = MacdPlot3HistoryBuffer[i];//plot 3
+
+         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),5, indicatorName, 3, i);
+         CombinedHistory[i][49] = MacdPlot4HistoryBuffer[i];//plot 4
+
+         if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
+
+            strWriteLine2 = ",Negative";
+         }
+         else {
+            strWriteLine2 = ",Positive";
+         }
+
+         CombinedHistory[i][90] = iCustom(Symbol(),5, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][91] = iCustom(Symbol(),5, SniperPink, 0, i);//sniper
+         CombinedHistory[i][92] = iCustom(Symbol(),5, SniperPurple, 0, i);//sniper
          
          //build a line of strings based on a line of data
          strWriteLine = strWriteLine +
@@ -1512,40 +1634,38 @@ void LogIndicatorData()
          + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
          + "";
 
-         //1 build a line of data
-         FastMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 0, i);
-         CombinedHistory[i][30] = i;//candle index
-         CombinedHistory[i][32] = FastMAHistoryBuffer[i];//fast moving average
+         //3 build a line of data
+         FastMAHistoryBuffer[i] = iCustom(Symbol(),3, duto_chart_indicators, 0, i);
+         CombinedHistory[i][50] = i;//candle index
+         CombinedHistory[i][52] = FastMAHistoryBuffer[i];//fast moving average
          
-         SlowMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 1, i);
-         CombinedHistory[i][33] = SlowMAHistoryBuffer[i];//slow moving average
+         SlowMAHistoryBuffer[i] = iCustom(Symbol(),3, duto_chart_indicators, 1, i);
+         CombinedHistory[i][53] = SlowMAHistoryBuffer[i];//slow moving average
 
-         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 4, i);
-         CombinedHistory[i][34] = FiveFiftyMAHistoryBuffer[i];//550 moving average
+         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),3, duto_chart_indicators, 4, i);
+         CombinedHistory[i][54] = FiveFiftyMAHistoryBuffer[i];//550 moving average
 
-         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 5, i);
-         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 6, i);
+         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),3, duto_chart_indicators, 5, i);
+         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),3, duto_chart_indicators, 6, i);
 
          if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
-            CombinedHistory[i][35] = -1;//delta collapsed negative
+            CombinedHistory[i][55] = -1;//delta collapsed negative
          }
          else {
-            CombinedHistory[i][35] = 1;//delta collapsed positive
+            CombinedHistory[i][55] = 1;//delta collapsed positive
          }
 
-         MacdHistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 0, i);
-         CombinedHistory[i][36] = MacdHistoryBuffer[i];//macd histogram
+         MacdHistoryBuffer[i] = iCustom(Symbol(),3, indicatorName, 0, i);
+         CombinedHistory[i][56] = MacdHistoryBuffer[i];//macd histogram
 
-         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 1, i);
-         CombinedHistory[i][37] = MacdPlot2HistoryBuffer[i];//plot 2
+         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),3, indicatorName, 1, i);
+         CombinedHistory[i][57] = MacdPlot2HistoryBuffer[i];//plot 2
 
-         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 2, i);
-         CombinedHistory[i][38] = MacdPlot3HistoryBuffer[i];//plot 3
+         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),3, indicatorName, 2, i);
+         CombinedHistory[i][58] = MacdPlot3HistoryBuffer[i];//plot 3
 
-         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 3, i);
-         CombinedHistory[i][39] = MacdPlot4HistoryBuffer[i];//plot 4
-
-         //Print("MacdPlot4HistoryBuffer[i]: " + NormalizeDouble(MacdPlot4HistoryBuffer[i] ,6)  + " CombinedHistory[i][39]: " + NormalizeDouble(CombinedHistory[i][39] ,6));
+         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),3, indicatorName, 3, i);
+         CombinedHistory[i][59] = MacdPlot4HistoryBuffer[i];//plot 4
 
          if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
 
@@ -1555,11 +1675,72 @@ void LogIndicatorData()
             strWriteLine2 = ",Positive";
          }
 
-         //SniperHistoryBuffer[i] = iCustom(Symbol(),1, duto_sniper, 0, i);
-         //CombinedHistory[i][43] = SniperHistoryBuffer[i];//sniper
-         CombinedHistory[i][57] = iCustom(Symbol(),1, SniperBlue, 0, i);//sniper
-         CombinedHistory[i][58] = iCustom(Symbol(),1, SniperPink, 0, i);//sniper
-         CombinedHistory[i][59] = iCustom(Symbol(),1, SniperPurple, 0, i);//sniper
+         CombinedHistory[i][95] = iCustom(Symbol(),5, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][96] = iCustom(Symbol(),5, SniperPink, 0, i);//sniper
+         CombinedHistory[i][97] = iCustom(Symbol(),5, SniperPurple, 0, i);//sniper
+         
+         //build a line of strings based on a line of data
+         strWriteLine = strWriteLine +
+         "," + i
+         + "," + iTime(Symbol(), 3, i) 
+
+         + "," + DoubleToString(FastMAHistoryBuffer[i], 5)
+         + "," + DoubleToString(SlowMAHistoryBuffer[i], 5)
+         + "," + DoubleToString(FiveFiftyMAHistoryBuffer[i], 5)
+
+         + strWriteLine2
+         
+         + "," + DoubleToString(MacdHistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot2HistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot3HistoryBuffer[i], 7)
+         + "," + DoubleToString(MacdPlot4HistoryBuffer[i], 7)
+         + "";
+
+         //1 build a line of data
+         FastMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 0, i);
+         CombinedHistory[i][60] = i;//candle index
+         CombinedHistory[i][62] = FastMAHistoryBuffer[i];//fast moving average
+         
+         SlowMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 1, i);
+         CombinedHistory[i][63] = SlowMAHistoryBuffer[i];//slow moving average
+
+         FiveFiftyMAHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 4, i);
+         CombinedHistory[i][64] = FiveFiftyMAHistoryBuffer[i];//550 moving average
+
+         DeltaCollapsedPosHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 5, i);
+         DeltaCollapsedNegHistoryBuffer[i] = iCustom(Symbol(),1, duto_chart_indicators, 6, i);
+
+         if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
+            CombinedHistory[i][65] = -1;//delta collapsed negative
+         }
+         else {
+            CombinedHistory[i][65] = 1;//delta collapsed positive
+         }
+
+         MacdHistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 0, i);
+         CombinedHistory[i][66] = MacdHistoryBuffer[i];//macd histogram
+
+         MacdPlot2HistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 1, i);
+         CombinedHistory[i][67] = MacdPlot2HistoryBuffer[i];//plot 2
+
+         MacdPlot3HistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 2, i);
+         CombinedHistory[i][68] = MacdPlot3HistoryBuffer[i];//plot 3
+
+         MacdPlot4HistoryBuffer[i] = iCustom(Symbol(),1, indicatorName, 3, i);
+         CombinedHistory[i][69] = MacdPlot4HistoryBuffer[i];//plot 4
+
+
+         if (DeltaCollapsedPosHistoryBuffer[i] == 2147483647) {
+
+            strWriteLine2 = ",Negative";
+         }
+         else {
+            strWriteLine2 = ",Positive";
+         }
+
+         CombinedHistory[i][100] = iCustom(Symbol(),1, SniperBlue, 0, i);//sniper
+         CombinedHistory[i][101] = iCustom(Symbol(),1, SniperPink, 0, i);//sniper
+         CombinedHistory[i][102] = iCustom(Symbol(),1, SniperPurple, 0, i);//sniper
          
          
          //build a line of strings based on a line of data
@@ -1582,27 +1763,45 @@ void LogIndicatorData()
 
          + "," + i
          + "," + iTime(Symbol(), 60, i) 
-         + "," + CombinedHistory[i][42]
-         + "," + CombinedHistory[i][43]
-         + "," + CombinedHistory[i][44]
+         + "," + CombinedHistory[i][70]
+         + "," + CombinedHistory[i][71]
+         + "," + CombinedHistory[i][72]
+
+         + "," + i
+         + "," + iTime(Symbol(), 30, i) 
+         + "," + CombinedHistory[i][75]
+         + "," + CombinedHistory[i][76]
+         + "," + CombinedHistory[i][77]
 
          + "," + i
          + "," + iTime(Symbol(), 15, i) 
-         + "," + CombinedHistory[i][47]
-         + "," + CombinedHistory[i][48]
-         + "," + CombinedHistory[i][49]
+         + "," + CombinedHistory[i][80]
+         + "," + CombinedHistory[i][81]
+         + "," + CombinedHistory[i][82]
+
+         + "," + i
+         + "," + iTime(Symbol(), 10, i) 
+         + "," + CombinedHistory[i][85]
+         + "," + CombinedHistory[i][86]
+         + "," + CombinedHistory[i][87]
 
          + "," + i
          + "," + iTime(Symbol(), 5, i) 
-         + "," + CombinedHistory[i][52]
-         + "," + CombinedHistory[i][53]
-         + "," + CombinedHistory[i][54]
+         + "," + CombinedHistory[i][90]
+         + "," + CombinedHistory[i][91]
+         + "," + CombinedHistory[i][92]
+
+         + "," + i
+         + "," + iTime(Symbol(), 3, i) 
+         + "," + CombinedHistory[i][95]
+         + "," + CombinedHistory[i][96]
+         + "," + CombinedHistory[i][97]
 
          + "," + i
          + "," + iTime(Symbol(), 1, i) 
-         + "," + CombinedHistory[i][57]
-         + "," + CombinedHistory[i][58]
-         + "," + CombinedHistory[i][59]
+         + "," + CombinedHistory[i][100]
+         + "," + CombinedHistory[i][101]
+         + "," + CombinedHistory[i][102]
 
          /* //recent highest and recent lowest data
          + "," + CombinedHistory[i][44]
@@ -2311,7 +2510,7 @@ void RunCandleTasks()
       //log data and build the CombinedHistory array
       LogIndicatorData();
       //evaluate for a strategy
-      SelectedStrategy();
+      //SelectedStrategy();
       //
       EvaluateLastHighestLowest();
       //
