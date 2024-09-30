@@ -1662,28 +1662,29 @@ void EvaluateSniper(string command)
    }
 
    if (
-      //M15 BLUE HIGH OR RISING
-      (CombinedHistory[0][(sniperIndex + 2)] >= 99
-      || (CombinedHistory[0][(sniperIndex + 2)] > CombinedHistory[1][(sniperIndex + 2)]))
-      && 
-      //M15 PLOTS ALL GREEN
-      (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0) >= 1
+      //H1 BLUE HIGH, PINK LOW
+      CombinedHistory[0][(sniperIndex + 2)] >= 99
+      && CombinedHistory[0][(sniperIndex + 3)] <= 5
+      /* //H1 PLOTS ALL GREEN
+      && (CandleColorHowLong(UpperTimeFrame + 6, "GREEN", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 7, "GREEN", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 8, "GREEN", 0) >= 1
-      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 9, "GREEN", 0) >= 1 */
 
-      //M5 PINK LOW
-      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
+      //M15 BLUE LOW, PINK LOW
+      //&& CombinedHistory[0][(sniperIndex + 5 + 2)] <= 5
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] <= 5
 
-      //M1 PLOTS 1 RED
-      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 6, "RED", 1) >= 1
-      //M1 PLOTS 2-4 GREEN
-      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 7, "GREEN", 0) >= 1
-      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 8, "GREEN", 0) >= 1
-      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "GREEN", 0) >= 1
-      )
+      /* && CandleColorHowLong(UpperTimeFrame + 10 + 6, "RED", 1) >= 1
+      //M1 PLOTS 2-3 GREEN
+      && CandleColorHowLong(UpperTimeFrame + 10 + 7, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 8, "GREEN", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 9, "GREEN", 0) >= 1  */
       )
    {
+      Print("CombinedHistory[0][(sniperIndex + 5 + 2)] ; " + CombinedHistory[0][(sniperIndex + 5 + 2)]);
+      Print("CombinedHistory[0][(sniperIndex + 5 + 3)] ; " + CombinedHistory[0][(sniperIndex + 5 + 3)]);
+
       str = "HIGH";
       SniperCockedHigh = true;
       SniperCockedLow = false;
@@ -1703,11 +1704,15 @@ void EvaluateSniper(string command)
 
       /* if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
       {
-         ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'48,61,26');
-         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrLawnGreen);
-         ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
+         string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)])
+         + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
+
+         ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+         ObjectSet(objName, OBJPROP_RAY , 0);
+         ObjectSet(objName, OBJPROP_COLOR, C'48,61,26');
+         //ObjectSet(objName, OBJPROP_COLOR, clrLawnGreen);
+         ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
+
          SniperObjectRunning++;
 
          SendNotification(Symbol() + " SNIPER COCKED HIGH. LOOK FOR A BUY");   
@@ -1715,39 +1720,47 @@ void EvaluateSniper(string command)
    }
    else
      if (
-      //M15 BLUE LOW OR FALLING
-      (CombinedHistory[0][(sniperIndex + 2)] <= 1
-      || (CombinedHistory[0][(sniperIndex + 2)] < CombinedHistory[1][(sniperIndex + 2)]))
-      && 
-      //M15 PLOTS ALL RED
-      (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) >= 1
+      //H1 BLUE LOW, PINK HIGH
+      CombinedHistory[0][(sniperIndex + 2)] <= 5
+      && CombinedHistory[0][(sniperIndex + 3)] >= 99
+      /* //H1 PLOTS ALL RED
+      && (CandleColorHowLong(UpperTimeFrame + 6, "RED", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 7, "RED", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 8, "RED", 0) >= 1
-      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 9, "RED", 0) >= 1 */
 
-      //M5 PINK HIGH
-      //&& CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
+      //M15 BLUE HIGH, PINK HIGH
+      //&& CombinedHistory[0][(sniperIndex + 5 + 2)] >= 95
+      && CombinedHistory[0][(sniperIndex + 5 + 3)] >= 95
 
-      //M1 PLOTS 1 RED
-      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 6, "GREEN", 1) >= 1
-      //M1 PLOTS 2-4 GREEN
+      /* //M15 PLOTS 1 RED
+      && CandleColorHowLong(UpperTimeFrame + 10 + 6, "GREEN", 1) >= 1
+      //M15 PLOTS 2-3 GREEN
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 7, "RED", 0) >= 1
       && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 8, "RED", 0) >= 1
-      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "RED", 0) >= 1
+      && CandleColorHowLong(UpperTimeFrame + 10 + 10 + 9, "RED", 0) >= 1 */
       )
-     )
    {
+      Print("CombinedHistory[0][(sniperIndex + 5 + 2)] ; " + CombinedHistory[0][(sniperIndex + 5 + 2)]);
+      Print("CombinedHistory[0][(sniperIndex + 5 + 3)] ; " + CombinedHistory[0][(sniperIndex + 5 + 3)]);
+
       str = "LOW";
       SniperCockedHigh = false;
       SniperCockedLow = true;
       SniperCockedNeutral = false; 
 
-      ObjectCreate("objSniperObject_" + SniperObjectRunning, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_RAY , 0);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, C'109,2,2');
-      //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
-      ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_STYLE, STYLE_DOT);
-      SniperObjectRunning++; 
+      if ((UseTradingHours && IsOperatingHours) || !UseTradingHours)
+      {
+         string objName = "objSniperObject_" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) 
+         + "-" + MathRound(CombinedHistory[0][(sniperIndex + 2)]) + "_" + SniperObjectRunning;
+
+         ObjectCreate(objName, OBJ_TREND, 0, Time[0], 0, Time[0], 50000, 0, 0);
+         ObjectSet(objName, OBJPROP_RAY , 0);
+         ObjectSet(objName, OBJPROP_COLOR, C'109,2,2');
+         //ObjectSet("objSniperObject_" + SniperObjectRunning, OBJPROP_COLOR, clrRed);
+         ObjectSet(objName, OBJPROP_STYLE, STYLE_DOT);
+
+         SniperObjectRunning++; 
 
       if (TradingHoursOk())
       {
